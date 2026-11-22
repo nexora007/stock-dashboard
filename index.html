@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pro Stock Terminal — Real-Time, Financials & Calculators</title>
+  <title>NEXORA TRADING — Learning & Research Terminal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,8 +12,13 @@
     <!-- Top Bar -->
     <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-800 pb-4">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-emerald-400">Pro Stock Terminal</h1>
-        <p class="text-xs md:text-sm text-slate-400">Real-Time Quote • Financial Statements • Valuation & Risk Calculators</p>
+        <div class="flex flex-wrap items-baseline gap-2.5">
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-emerald-400">NEXORA TRADING</h1>
+          <span class="text-xs text-slate-400 font-normal">กุว่างเลยทำเล่นๆ</span>
+        </div>
+        <p class="text-xs md:text-sm text-slate-400 mt-1">
+          Company Roots & Leadership • Daily News Brief • Watchlist Catalysts • Valuation & Risk Calculators
+        </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
@@ -85,6 +90,70 @@
         <div id="m-de" class="text-xl font-bold mt-1">-</div>
         <div class="text-xs text-slate-500 mt-1">หนี้สินต่อทุน</div>
       </div>
+    </section>
+
+    <!-- Company Roots & Daily News Brief -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Company Roots & Key People -->
+      <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-base font-semibold text-emerald-400">รากเหง้าบริษัท & บุคคลสำคัญ</h2>
+            <p class="text-xs text-slate-400">จุดเริ่มต้น ผู้ร่วมก่อตั้ง ผู้ขับเคลื่อนหลัก และประวัติย่อ</p>
+          </div>
+          <span id="root-sector-badge" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">Semiconductors</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3">
+            <div class="text-slate-400">ปีที่ก่อตั้ง (Founded)</div>
+            <div id="root-founded" class="text-sm font-semibold text-slate-100 mt-1">-</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3">
+            <div class="text-slate-400">ผู้ร่วมก่อตั้ง (Co-Founders)</div>
+            <div id="root-founders" class="text-sm font-semibold text-slate-100 mt-1">-</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3 sm:col-span-2">
+            <div class="text-slate-400">ผู้นำ / บุคคลสำคัญที่ขับเคลื่อน (Key Leaders)</div>
+            <div id="root-leaders" class="text-sm font-semibold text-emerald-300 mt-1">-</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 space-y-1.5">
+          <div class="text-xs font-semibold text-slate-300">ประวัติความเป็นมาโดยคร่าวๆ</div>
+          <p id="root-history" class="text-xs md:text-sm text-slate-300 leading-relaxed">-</p>
+        </div>
+      </div>
+
+      <!-- Daily News Summary -->
+      <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-base font-semibold text-emerald-400">สรุปข่าวรายวัน (Daily News Brief)</h2>
+            <p class="text-xs text-slate-400">แปลและย่อยประเด็นสำคัญเพื่ออ่านจับทิศทางธุรกิจ</p>
+          </div>
+          <span id="news-mode-badge" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300">สรุปประเด็นหลัก</span>
+        </div>
+
+        <div id="news-list" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+
+        <p class="text-[11px] text-slate-500">
+          * หมายเหตุ: หากต้องการให้สรุปข่าวอัตโนมัติรายวันแบบสดใหม่ สามารถต่อ endpoint สรุปข่าวผ่าน Cloudflare Worker หรือผู้ให้บริการ AI เพิ่มเติมได้
+        </p>
+      </div>
+    </section>
+
+    <!-- Watchlist & Key Catalysts -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <h2 class="text-base font-semibold text-emerald-400">หุ้นน่าจับตามอง & ปัจจัยขับเคลื่อน (Watchlist & Catalysts)</h2>
+          <p class="text-xs text-slate-400">คัดหุ้นตัวอย่างเพื่อศึกษาตัวขับเคลื่อนธุรกิจ กดที่การ์ดเพื่อโหลดหุ้นนั้นขึ้นมาวิเคราะห์ทันที</p>
+        </div>
+        <span class="text-xs text-slate-500">* เพื่อการศึกษาและตั้งสมมติฐาน ไม่ใช่คำแนะนำการลงทุน</span>
+      </div>
+
+      <div id="watchlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
     </section>
 
     <!-- Chart + Financial Statements -->
@@ -219,16 +288,164 @@
     const WORKER_URL = "https://stock-proxy.d2pkn724gr.workers.dev";
 
     const catalog = [
-      { symbol: "NVDA", name: "NVIDIA Corporation", domain: "nvidia.com", sector: "Semiconductors", price: 138.50, changePct: 2.45, pe: 46.2, eps: 3.00, roe: "88.5%", de: "0.41", history: [105, 112, 118, 115, 126, 133, 138.5] },
-      { symbol: "MU", name: "Micron Technology, Inc.", domain: "micron.com", sector: "Memory & Storage", price: 104.20, changePct: 1.82, pe: 14.8, eps: 7.04, roe: "19.4%", de: "0.28", history: [82, 88, 85, 94, 99, 101, 104.2] },
-      { symbol: "AAPL", name: "Apple Inc.", domain: "apple.com", sector: "Consumer Tech", price: 229.00, changePct: 0.74, pe: 33.5, eps: 6.84, roe: "147.0%", de: "1.45", history: [195, 202, 210, 208, 218, 224, 229.0] },
-      { symbol: "MSFT", name: "Microsoft Corporation", domain: "microsoft.com", sector: "Cloud & AI", price: 424.50, changePct: 1.15, pe: 35.1, eps: 12.09, roe: "36.2%", de: "0.33", history: [390, 401, 398, 410, 416, 420, 424.5] },
-      { symbol: "GOOGL", name: "Alphabet Inc.", domain: "abc.xyz", sector: "Search & Cloud", price: 176.80, changePct: -0.45, pe: 22.8, eps: 7.75, roe: "31.5%", de: "0.09", history: [160, 165, 170, 168, 174, 178, 176.8] },
-      { symbol: "AMZN", name: "Amazon.com, Inc.", domain: "amazon.com", sector: "E-Commerce & AWS", price: 196.40, changePct: 1.52, pe: 41.0, eps: 4.79, roe: "24.8%", de: "0.56", history: [172, 178, 181, 185, 189, 193, 196.4] },
-      { symbol: "META", name: "Meta Platforms, Inc.", domain: "meta.com", sector: "Social & AI", price: 582.10, changePct: 0.92, pe: 26.4, eps: 22.05, roe: "35.7%", de: "0.24", history: [510, 528, 540, 552, 565, 575, 582.1] },
-      { symbol: "TSLA", name: "Tesla, Inc.", domain: "tesla.com", sector: "EV & Robotics", price: 254.30, changePct: -1.18, pe: 68.5, eps: 3.71, roe: "17.9%", de: "0.18", history: [215, 228, 240, 235, 248, 260, 254.3] },
-      { symbol: "AMD", name: "Advanced Micro Devices, Inc.", domain: "amd.com", sector: "Semiconductors", price: 152.60, changePct: 2.10, pe: 82.0, eps: 1.86, roe: "5.4%", de: "0.04", history: [135, 140, 138, 144, 147, 150, 152.6] },
-      { symbol: "AVGO", name: "Broadcom Inc.", domain: "broadcom.com", sector: "Networking & AI Chips", price: 174.90, changePct: 1.34, pe: 38.2, eps: 4.58, roe: "28.1%", de: "1.12", history: [145, 152, 156, 160, 166, 171, 174.9] }
+      {
+        symbol: "NVDA",
+        name: "NVIDIA Corporation",
+        domain: "nvidia.com",
+        sector: "Semiconductors",
+        founded: "1993",
+        founders: "Jensen Huang, Chris Malachowsky, Curtis Priem",
+        leaders: "Jensen Huang (CEO & Co-Founder)",
+        history: "เริ่มต้นจากการออกแบบชิปกราฟิก (GPU) สำหรับเกม 3D และต่อยอดสถาปัตยกรรม CUDA จนกลายเป็นโครงสร้างพื้นฐานสำคัญด้านการประมวลผล AI และ Data Center",
+        driver: "ความต้องการชิปประมวลผล AI และระบบ Data Center รุ่นใหม่ รวมถึงระบบซอฟต์แวร์/เครือข่ายที่เชื่อมโยงกัน",
+        featuredWatchlist: true,
+        news: [
+          { tag: "AI & Data Center", title: "จับตารอบการอัปเกรดโครงสร้างพื้นฐาน AI ของผู้ให้บริการคลาวด์รายใหญ่", summary: "ประเด็นสำคัญอยู่ที่กำลังการผลิต การส่งมอบชิปรุ่นใหม่ และอัตรากำไรขั้นต้นในระดับสูง" },
+          { tag: "Ecosystem", title: "ซอฟต์แวร์และระบบเครือข่ายยังคงเป็นตัวล็อกลูกค้าสำคัญ", summary: "นักวิเคราะห์ติดตามการต่อยอดจากฮาร์ดแวร์เดี่ยวไปสู่โซลูชันครบวงจรสำหรับองค์กร" }
+        ],
+        price: 138.50, changePct: 2.45, pe: 46.2, eps: 3.00, roe: "88.5%", de: "0.41", history: [105, 112, 118, 115, 126, 133, 138.5]
+      },
+      {
+        symbol: "MU",
+        name: "Micron Technology, Inc.",
+        domain: "micron.com",
+        sector: "Memory & Storage",
+        founded: "1978",
+        founders: "Ward Parkinson, Joe Parkinson, Dennis Wilson, Doug Pitman",
+        leaders: "Sanjay Mehrotra (President & CEO)",
+        history: "ก่อตั้งในรัฐไอดาโฮ สหรัฐอเมริกา พัฒนาจากทีมออกแบบหน่วยความจำ DRAM จนเป็นผู้ผลิตหน่วยความจำและสตอเรจระดับโลก ทั้ง DRAM, NAND และ HBM",
+        driver: "วัฏจักรราคาหน่วยความจำ (Memory Cycle) และการเติบโตของหน่วยความจำความเร็วสูง (HBM) สำหรับงาน AI",
+        featuredWatchlist: true,
+        news: [
+          { tag: "Memory Cycle", title: "ติดตามสมดุลอุปสงค์-อุปทานของ DRAM และหน่วยความจำ HBM", summary: "กลุ่มหน่วยความจำมีลักษณะเป็นวัฏจักรชัดเจน การบริหารสต็อกและราคาขายต่อหน่วยจึงเป็นหัวใจสำคัญ" },
+          { tag: "CapEx", title: "แผนการลงทุนขยายกำลังการผลิตและเทคโนโลยีโหนดใหม่", summary: "จับตาการใช้เงินลงทุน (CapEx) เทียบกับกระแสเงินสดอิสระในแต่ละไตรมาส" }
+        ],
+        price: 104.20, changePct: 1.82, pe: 14.8, eps: 7.04, roe: "19.4%", de: "0.28", history: [82, 88, 85, 94, 99, 101, 104.2]
+      },
+      {
+        symbol: "AAPL",
+        name: "Apple Inc.",
+        domain: "apple.com",
+        sector: "Consumer Tech",
+        founded: "1976",
+        founders: "Steve Jobs, Steve Wozniak, Ronald Wayne",
+        leaders: "Tim Cook (CEO)",
+        history: "เริ่มต้นจากคอมพิวเตอร์ส่วนบุคคล Apple I ก่อนพลิกฟื้นด้วย iPod, iPhone และระบบนิเวศฮาร์ดแวร์-ซอฟต์แวร์-บริการที่ผูกผู้บริโภคไว้ทั่วโลก",
+        driver: "ฐานผู้ใช้งานอุปกรณ์ที่ติดตั้งอยู่ทั่วโลก (Installed Base), รายได้กลุ่ม Services และฟีเจอร์ AI บนอุปกรณ์",
+        featuredWatchlist: true,
+        news: [
+          { tag: "Ecosystem & Services", title: "ติดตามการเติบโตของรายได้กลุ่ม Services และความภักดีต่อแบรนด์", summary: "กลุ่มบริการช่วยเพิ่มความสม่ำเสมอของรายได้และอัตรากำไรควบคู่ไปกับยอดขายฮาร์ดแวร์" },
+          { tag: "Supply Chain", title: "การกระจายฐานการผลิตและการบริหารต้นทุนชิ้นส่วน", summary: "ดูผลกระทบจากอัตราแลกเปลี่ยนและดีมานด์ในแต่ละภูมิภาคหลัก" }
+        ],
+        price: 229.00, changePct: 0.74, pe: 33.5, eps: 6.84, roe: "147.0%", de: "1.45", history: [195, 202, 210, 208, 218, 224, 229.0]
+      },
+      {
+        symbol: "MSFT",
+        name: "Microsoft Corporation",
+        domain: "microsoft.com",
+        sector: "Cloud & AI",
+        founded: "1975",
+        founders: "Bill Gates, Paul Allen",
+        leaders: "Satya Nadella (Chairman & CEO)",
+        history: "ผู้บุกเบิกซอฟต์แวร์ยุคพีซีผ่าน MS-DOS และ Windows ก่อนเปลี่ยนผ่านสู่ธุรกิจ Cloud (Azure) และซอฟต์แวร์องค์กรแบบ Subscription ภายใต้ยุคของ Satya Nadella",
+        driver: "การเติบโตของบริการคลาวด์ Azure, การฝัง AI ในชุดซอฟต์แวร์องค์กร และสัญญาใช้งานระยะยาวกับลูกค้าธุรกิจ",
+        featuredWatchlist: true,
+        news: [
+          { tag: "Cloud & Enterprise", title: "ติดตามอัตราการเติบโตของ Azure และการใช้งานฟีเจอร์ AI ในภาคธุรกิจ", summary: "จุดเน้นคือการแปลงงบลงทุนด้านโครงสร้างพื้นฐานคลาวด์ให้เป็นรายได้ต่อเนื่องขององค์กร" },
+          { tag: "Productivity", title: "ฐานลูกค้าองค์กรขนาดใหญ่ช่วยพยุงกระแสเงินสดจากการดำเนินงาน", summary: "จับตาความสามารถในการทำกำไรและทิศทางค่าใช้จ่ายฝ่ายทุน" }
+        ],
+        price: 424.50, changePct: 1.15, pe: 35.1, eps: 12.09, roe: "36.2%", de: "0.33", history: [390, 401, 398, 410, 416, 420, 424.5]
+      },
+      {
+        symbol: "GOOGL",
+        name: "Alphabet Inc.",
+        domain: "abc.xyz",
+        sector: "Search & Cloud",
+        founded: "1998 (Alphabet ปรับโครงสร้าง 2015)",
+        founders: "Larry Page, Sergey Brin",
+        leaders: "Sundar Pichai (CEO)",
+        history: "กำเนิดจากเครื่องมือค้นหา Google ที่เปลี่ยนโฉมการเข้าถึงข้อมูลบนอินเทอร์เน็ต ก่อนขยายสู่ YouTube, Android, Google Cloud และปรับโครงสร้าง持หุ้นภายใต้ Alphabet",
+        driver: "รายได้โฆษณา Search & YouTube, การทำกำไรของ Google Cloud และการแข่งขันด้าน AI Search",
+        news: [
+          { tag: "Search & Cloud", title: "จับตาการปรับตัวของโมเดลการค้นหาและอัตรากำไรของ Google Cloud", summary: "ดูว่าประสิทธิภาพการสร้างรายได้จากโฆษณาและคลาวด์เป็นอย่างไรเมื่อเทียบกับต้นทุนโครงสร้างพื้นฐาน" }
+        ],
+        price: 176.80, changePct: -0.45, pe: 22.8, eps: 7.75, roe: "31.5%", de: "0.09", history: [160, 165, 170, 168, 174, 178, 176.8]
+      },
+      {
+        symbol: "AMZN",
+        name: "Amazon.com, Inc.",
+        domain: "amazon.com",
+        sector: "E-Commerce & AWS",
+        founded: "1994",
+        founders: "Jeff Bezos",
+        leaders: "Andy Jassy (President & CEO)",
+        history: "เริ่มต้นจากการขายหนังสือออนไลน์ ก่อนขยายสู่แพลตฟอร์มอีคอมเมิร์ซขนาดใหญ่ โลจิสติกส์ และ Amazon Web Services (AWS) ที่กลายเป็นเครื่องยนต์ทำกำไรหลัก",
+        driver: "ความสามารถในการทำกำไรของ AWS, ประสิทธิภาพต้นทุนโลจิสติกส์ และรายได้โฆษณาบนแพลตฟอร์ม",
+        news: [
+          { tag: "AWS & Retail", title: "ติดตามการเร่งตัวของ AWS และประสิทธิภาพการกระจายสินค้า", summary: "นักลงทุนให้ความสำคัญกับสัดส่วนกำไรจากคลาวด์และการลดต้นทุนต่อหน่วยจัดส่ง" }
+        ],
+        price: 196.40, changePct: 1.52, pe: 41.0, eps: 4.79, roe: "24.8%", de: "0.56", history: [172, 178, 181, 185, 189, 193, 196.4]
+      },
+      {
+        symbol: "META",
+        name: "Meta Platforms, Inc.",
+        domain: "meta.com",
+        sector: "Social & AI",
+        founded: "2004",
+        founders: "Mark Zuckerberg, Eduardo Saverin, Andrew McCollum, Dustin Moskovitz, Chris Hughes",
+        leaders: "Mark Zuckerberg (Founder & CEO)",
+        history: "เริ่มต้นจากเครือข่ายสังคมในมหาวิทยาลัย ก่อนขยายสู่ Facebook, Instagram, WhatsApp และลงทุนด้าน AI และเทคโนโลยีเสมือนจริง",
+        driver: "ประสิทธิภาพระบบโฆษณาด้วย AI, จำนวนผู้ใช้งานรายวันในตระกูลแอป (Family of Apps) และการคุมวินัยค่าใช้จ่าย",
+        news: [
+          { tag: "Ad Tech & AI", title: "จับตาประสิทธิภาพการยิงโฆษณาและการใช้งานฟีเจอร์ AI บนแพลตฟอร์ม", summary: "ประเด็นหลักคือการเพิ่มมูลค่าต่อผู้ใช้งาน (ARPU) ควบคู่กับการบริหารงบลงทุน" }
+        ],
+        price: 582.10, changePct: 0.92, pe: 26.4, eps: 22.05, roe: "35.7%", de: "0.24", history: [510, 528, 540, 552, 565, 575, 582.1]
+      },
+      {
+        symbol: "TSLA",
+        name: "Tesla, Inc.",
+        domain: "tesla.com",
+        sector: "EV & Robotics",
+        founded: "2003",
+        founders: "Martin Eberhard, Marc Tarpenning (ร่วมขับเคลื่อนและขยายธุรกิจกับ Elon Musk)",
+        leaders: "Elon Musk (CEO)",
+        history: "บุกเบิกรถยนต์ไฟฟ้าสมรรถนะสูงและระบบขับเคลื่อนอัตโนมัติ พร้อมขยายสู่ระบบกักเก็บพลังงาน (Energy Storage) และหุ่นยนต์/AI",
+        driver: "ปริมาณการส่งมอบรถยนต์และราคาขายเฉลี่ย, อัตรากำไรธุรกิจพลังงาน และความคืบหน้าด้านซอฟต์แวร์/หุ่นยนต์",
+        news: [
+          { tag: "EV & Energy", title: "ติดตามยอดส่งมอบรถยนต์ การแข่งขันด้านราคา และธุรกิจกักเก็บพลังงาน", summary: "ดูสมดุลระหว่างการขยายปริมาณขายกับอัตรากำไรขั้นต้นของธุรกิจหลัก" }
+        ],
+        price: 254.30, changePct: -1.18, pe: 68.5, eps: 3.71, roe: "17.9%", de: "0.18", history: [215, 228, 240, 235, 248, 260, 254.3]
+      },
+      {
+        symbol: "AMD",
+        name: "Advanced Micro Devices, Inc.",
+        domain: "amd.com",
+        sector: "Semiconductors",
+        founded: "1969",
+        founders: "Jerry Sanders และกลุ่มวิศวกรร่วมก่อตั้ง",
+        leaders: "Lisa Su (Chair & CEO)",
+        history: "ผู้ผลิตเซมิคอนดักเตอร์ที่แข่งขันในตลาด CPU และ GPU พลิกฟื้นความสามารถในการแข่งขันอย่างโดดเด่นผ่านสถาปัตยกรรม Ryzen และ EPYC",
+        driver: "ส่วนแบ่งตลาดชิปเซิร์ฟเวอร์ EPYC, โปรเซสเซอร์ฝั่งลูกค้า และชิปเร่งความเร็วสำหรับ Data Center",
+        news: [
+          { tag: "Data Center", title: "ติดตามการขยายตัวของชิปเซิร์ฟเวอร์และโซลูชันเร่งความเร็วประมวลผล", summary: "โฟกัสอยู่ที่การชิงส่วนแบ่งตลาดในกลุ่มลูกค้าองค์กรและคลาวด์" }
+        ],
+        price: 152.60, changePct: 2.10, pe: 82.0, eps: 1.86, roe: "5.4%", de: "0.04", history: [135, 140, 138, 144, 147, 150, 152.6]
+      },
+      {
+        symbol: "AVGO",
+        name: "Broadcom Inc.",
+        domain: "broadcom.com",
+        sector: "Networking & AI Chips",
+        founded: "1961 (สืบเนื่องรากฐาน HP/Agilent semiconductor)",
+        founders: "Henry Samueli, Henry Nicholas (และรากฐานเดิมของกลุ่มเซมิคอนดักเตอร์)",
+        leaders: "Hock Tan (President & CEO)",
+        history: "เติบโตผ่านการผสานชิปเครือข่าย/การเชื่อมต่อเข้ากับกลยุทธ์การเข้าซื้อกิจการซอฟต์แวร์โครงสร้างพื้นฐานองค์กร เช่น VMware",
+        driver: "ชิปเครือข่ายความเร็วสูงสำหรับศูนย์ข้อมูล, ชิปออกแบบเฉพาะทาง (Custom AI) และรายได้ซอฟต์แวร์องค์กร",
+        news: [
+          { tag: "Networking & Software", title: "จับตาความต้องการชิปเครือข่าย AI และการผสานธุรกิจซอฟต์แวร์องค์กร", summary: "ดูการผสมผสานระหว่างรายได้ฮาร์ดแวร์เฉพาะทางกับกระแสเงินสดจากซอฟต์แวร์" }
+        ],
+        price: 174.90, changePct: 1.34, pe: 38.2, eps: 4.58, roe: "28.1%", de: "1.12", history: [145, 152, 156, 160, 166, 171, 174.9]
+      }
     ];
 
     const defaultStatements = {
@@ -278,6 +495,74 @@
         fallbackEl.classList.remove("hidden");
       };
       imgEl.src = url;
+    }
+
+    function renderCompanyRoots(info) {
+      document.getElementById("root-sector-badge").textContent = info.sector || "Equity";
+      document.getElementById("root-founded").textContent = info.founded || "ต้องตรวจสอบเพิ่มเติมจากรายงานบริษัท";
+      document.getElementById("root-founders").textContent = info.founders || "ต้องตรวจสอบเพิ่มเติมจากเอกสารก่อตั้ง";
+      document.getElementById("root-leaders").textContent = info.leaders || "ทีมผู้บริหารปัจจุบันของบริษัท";
+      document.getElementById("root-history").textContent = info.history ||
+        `${info.name} (${info.symbol}) — สามารถค้นหาประวัติเต็ม ผู้ร่วมก่อตั้ง และผู้บริหารปัจจุบันเพิ่มเติมจากรายงานประจำปี (10-K) หรือเว็บไซต์ทางการของบริษัทเพื่อทำความเข้าใจโมเดลธุรกิจตั้งแต่รากเหง้า`;
+    }
+
+    function renderNews(info) {
+      const listEl = document.getElementById("news-list");
+      const items = (info.news && info.news.length) ? info.news : [
+        {
+          tag: "Research Note",
+          title: `ประเด็นที่ควรติดตามของ ${info.symbol}`,
+          summary: "ตรวจสอบผลประกอบการล่าสุด อัตรากำไร กระแสเงินสด และข่าวสำคัญในอุตสาหกรรมเพื่อประกอบการวิเคราะห์"
+        }
+      ];
+
+      listEl.innerHTML = items.map((n) => `
+        <div class="bg-slate-950/75 border border-slate-800/90 rounded-xl p-3.5 space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">${n.tag}</span>
+            <span class="text-[11px] text-slate-500">${info.symbol}</span>
+          </div>
+          <div class="text-sm font-semibold text-slate-100 leading-snug">${n.title}</div>
+          <p class="text-xs text-slate-400 leading-relaxed">${n.summary}</p>
+        </div>
+      `).join("");
+    }
+
+    function renderWatchlist() {
+      const gridEl = document.getElementById("watchlist-grid");
+      const picks = catalog.filter((c) => c.featuredWatchlist);
+
+      gridEl.innerHTML = picks.map((item) => {
+        const up = item.changePct >= 0;
+        return `
+          <button type="button" data-symbol="${item.symbol}"
+            class="watchlist-card text-left bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 flex flex-col justify-between gap-3 transition">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-extrabold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">${item.symbol}</span>
+                  <span class="text-[11px] text-slate-400">${item.sector}</span>
+                </div>
+                <span class="text-xs font-semibold ${up ? "text-emerald-400" : "text-rose-400"}">
+                  ${up ? "+" : ""}${item.changePct.toFixed(2)}%
+                </span>
+              </div>
+              <div class="text-sm font-semibold text-slate-100 truncate">${item.name}</div>
+              <div class="text-lg font-bold text-slate-100">$${item.price.toFixed(2)}</div>
+            </div>
+            <div class="pt-2.5 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
+              <span class="text-emerald-400 font-semibold">ปัจจัยขับเคลื่อน:</span> ${item.driver}
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      gridEl.querySelectorAll(".watchlist-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          loadStock(card.dataset.symbol);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
     }
 
     function renderSuggestions(items) {
@@ -432,15 +717,24 @@
         symbol: cleanTicker,
         name: (metaOverride && metaOverride.name) || (found && found.name) || `${cleanTicker} Corporation`,
         domain: (metaOverride && metaOverride.domain) || (found && found.domain) || "",
+        sector: (metaOverride && metaOverride.sector) || (found && found.sector) || "Equity",
+        founded: found && found.founded,
+        founders: found && found.founders,
+        leaders: found && found.leaders,
+        history: found && found.history,
+        news: found && found.news,
         price: (found && found.price) || 100.00,
         changePct: (found && found.changePct) || 0.00,
         pe: (found && found.pe) || "-",
         eps: (found && found.eps) || 2.50,
         roe: (found && found.roe) || "-",
         de: (found && found.de) || "-",
-        history: (found && found.history) || [92, 95, 94, 98, 97, 99, 100],
+        chartSeries: (found && Array.isArray(found.history)) ? found.history : [92, 95, 94, 98, 97, 99, 100],
         statements: defaultStatements
       };
+
+      renderCompanyRoots(base);
+      renderNews(base);
 
       let livePrice = base.price;
       let liveChange = base.changePct;
@@ -506,7 +800,7 @@
       document.getElementById("pos-entry").value = Number(livePrice).toFixed(2);
       document.getElementById("pos-stop").value = (Number(livePrice) * 0.94).toFixed(2);
 
-      renderChart(base.history);
+      renderChart(base.chartSeries);
       renderStatement(base.statements[currentStmtType]);
       calcAll();
     }
@@ -567,6 +861,7 @@
     ["val-eps", "val-pe", "val-mos", "pos-capital", "pos-risk-pct", "pos-entry", "pos-stop", "dca-m", "dca-y", "dca-r"]
       .forEach((id) => document.getElementById(id).addEventListener("input", calcAll));
 
+    renderWatchlist();
     loadStock("NVDA");
   </script>
 </body>
