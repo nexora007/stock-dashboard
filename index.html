@@ -18,7 +18,7 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <!-- Autocomplete Search Box -->
-        <div class="relative w-64" id="search-container">
+        <div class="relative w-72" id="search-container">
           <div class="flex items-center bg-slate-900 border border-slate-700 focus-within:border-emerald-400 rounded-lg px-2.5 py-1.5 gap-2">
             <span id="search-badge" class="w-6 h-6 rounded-md bg-emerald-500/15 text-emerald-400 text-[11px] font-bold flex items-center justify-center shrink-0">
               NV
@@ -28,7 +28,6 @@
               class="bg-transparent text-sm uppercase w-full focus:outline-none text-slate-100 placeholder-slate-500" />
           </div>
 
-          <!-- Dropdown Suggestions -->
           <div id="suggestions-dropdown"
             class="hidden absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-72 overflow-y-auto z-50 divide-y divide-slate-800/80">
           </div>
@@ -37,18 +36,12 @@
         <button id="load-btn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition">
           ดึงข้อมูล
         </button>
-
-        <input id="api-key-input" type="password" placeholder="Finnhub API Key (Optional)"
-          class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-44 focus:outline-none focus:border-emerald-400" />
-        <button id="save-key-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs border border-slate-700">
-          บันทึก Key
-        </button>
       </div>
     </header>
 
     <!-- Status Banner -->
     <div id="status-bar" class="text-xs px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex flex-wrap justify-between gap-2">
-      <span id="data-source-label">โหมด: ข้อมูลตัวอย่างพร้อมใช้งาน (ใส่ Finnhub API Key เพื่อดึงราคา Real-time)</span>
+      <span id="data-source-label">กำลังเชื่อมต่อ Cloudflare Worker Proxy...</span>
       <span id="last-updated" class="text-slate-400">อัปเดตล่าสุด: -</span>
     </div>
 
@@ -223,6 +216,8 @@
   </div>
 
   <script>
+    const WORKER_URL = "https://stock-proxy.d2pkn724gr.workers.dev";
+
     const catalog = [
       { symbol: "NVDA", name: "NVIDIA Corporation", domain: "nvidia.com", sector: "Semiconductors", price: 138.50, changePct: 2.45, pe: 46.2, eps: 3.00, roe: "88.5%", de: "0.41", history: [105, 112, 118, 115, 126, 133, 138.5] },
       { symbol: "MU", name: "Micron Technology, Inc.", domain: "micron.com", sector: "Memory & Storage", price: 104.20, changePct: 1.82, pe: 14.8, eps: 7.04, roe: "19.4%", de: "0.28", history: [82, 88, 85, 94, 99, 101, 104.2] },
@@ -261,19 +256,9 @@
 
     const tickerInput = document.getElementById("ticker-input");
     const dropdownEl = document.getElementById("suggestions-dropdown");
-    const apiKeyInput = document.getElementById("api-key-input");
-    apiKeyInput.value = localStorage.getItem("finnhub_key") || "";
-
-    document.getElementById("save-key-btn").addEventListener("click", () => {
-      localStorage.setItem("finnhub_key", apiKeyInput.value.trim());
-      alert("บันทึก API Key ลงในเบราว์เซอร์เรียบร้อยแล้ว");
-    });
 
     function getLogoUrl(item) {
-      if (item.domain) {
-        return `https://logo.clearbit.com/${item.domain}`;
-      }
-      return "";
+      return item.domain ? `https://logo.clearbit.com/${item.domain}` : "";
     }
 
     function renderLogoInto(imgEl, fallbackEl, item) {
@@ -351,10 +336,9 @@
 
       renderSuggestions(localMatches);
 
-      const key = (apiKeyInput.value || localStorage.getItem("finnhub_key") || "").trim();
-      if (key && q.length >= 1) {
+      if (q.length >= 1) {
         try {
-          const res = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(q)}&token=${encodeURIComponent(key)}`);
+          const res = await fetch(`${WORKER_URL}/?action=search&q=${encodeURIComponent(q)}`);
           const data = await res.json();
           if (data && Array.isArray(data.result)) {
             const apiItems = data.result
@@ -379,7 +363,7 @@
             renderSuggestions(merged.slice(0, 8));
           }
         } catch (_) {
-          // คงผลลัพธ์จาก catalog เดิมไว้
+          // ใช้รายชื่อจาก catalog เดิมหากเครือข่ายมีปัญหา
         }
       }
     }
@@ -389,7 +373,7 @@
       const val = tickerInput.value.trim().toUpperCase();
       document.getElementById("search-badge").textContent = (val || "ST").slice(0, 2);
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => filterOrSearch(val), 150);
+      searchTimer = setTimeout(() => filterOrSearch(val), 180);
     });
 
     document.addEventListener("click", (e) => {
@@ -442,7 +426,6 @@
       tickerInput.value = cleanTicker;
       document.getElementById("search-badge").textContent = cleanTicker.slice(0, 2);
 
-      const key = (apiKeyInput.value || localStorage.getItem("finnhub_key") || "").trim();
       const found = catalog.find((c) => c.symbol === cleanTicker);
 
       const base = {
@@ -461,20 +444,37 @@
 
       let livePrice = base.price;
       let liveChange = base.changePct;
-      let sourceText = "โหมด: ข้อมูลตัวอย่าง (ใส่ Finnhub API Key เพื่อดึงราคา Real-time)";
+      let peVal = base.pe;
+      let epsVal = base.eps;
+      let roeVal = base.roe;
+      let deVal = base.de;
+      let sourceText = "โหมด: ข้อมูลอ้างอิงสำรอง";
 
-      if (key) {
-        try {
-          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(cleanTicker)}&token=${encodeURIComponent(key)}`);
-          const q = await res.json();
-          if (q && typeof q.c === "number" && q.c > 0) {
-            livePrice = q.c;
-            liveChange = typeof q.dp === "number" ? q.dp : 0;
-            sourceText = `โหมด: ราคา Real-time จาก Finnhub (${cleanTicker})`;
-          }
-        } catch (_) {
-          sourceText = "ไม่สามารถดึง Real-time ได้ ชั่วคราวใช้ข้อมูลสำรอง";
+      try {
+        const [quoteRes, metricRes] = await Promise.all([
+          fetch(`${WORKER_URL}/?action=quote&symbol=${encodeURIComponent(cleanTicker)}`),
+          fetch(`${WORKER_URL}/?action=metrics&symbol=${encodeURIComponent(cleanTicker)}`)
+        ]);
+
+        const q = await quoteRes.json();
+        const m = await metricRes.json();
+
+        if (q && typeof q.c === "number" && q.c > 0) {
+          livePrice = q.c;
+          liveChange = typeof q.dp === "number" ? q.dp : 0;
+          sourceText = `โหมด: Real-time ผ่าน Cloudflare Worker (${cleanTicker})`;
         }
+
+        if (m && m.metric) {
+          if (typeof m.metric.peBasicExclExtraTTM === "number") peVal = m.metric.peBasicExclExtraTTM.toFixed(1);
+          if (typeof m.metric.epsTTM === "number") epsVal = m.metric.epsTTM;
+          if (typeof m.metric.roeTTM === "number") roeVal = `${m.metric.roeTTM.toFixed(1)}%`;
+          if (typeof m.metric["totalDebt/totalEquityQuarterly"] === "number") {
+            deVal = m.metric["totalDebt/totalEquityQuarterly"].toFixed(2);
+          }
+        }
+      } catch (_) {
+        sourceText = "โหมด: ข้อมูลสำรอง (ตรวจสอบ FINNHUB_API_KEY ใน Worker หากยังไม่ได้ตั้งค่า)";
       }
 
       renderLogoInto(
@@ -492,14 +492,17 @@
       chgEl.textContent = `${sign}${Number(liveChange).toFixed(2)}%`;
       chgEl.className = `text-xs font-semibold ${liveChange >= 0 ? "text-emerald-400" : "text-rose-400"}`;
 
-      document.getElementById("m-pe").textContent = base.pe === "-" ? "-" : `${base.pe}x`;
-      document.getElementById("m-eps").textContent = `$${Number(base.eps).toFixed(2)}`;
-      document.getElementById("m-roe").textContent = base.roe;
-      document.getElementById("m-de").textContent = base.de;
+      document.getElementById("m-pe").textContent = peVal === "-" ? "-" : `${peVal}x`;
+      document.getElementById("m-eps").textContent = typeof epsVal === "number" ? `$${epsVal.toFixed(2)}` : epsVal;
+      document.getElementById("m-roe").textContent = roeVal;
+      document.getElementById("m-de").textContent = deVal;
 
       document.getElementById("data-source-label").textContent = sourceText;
       document.getElementById("last-updated").textContent = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString("th-TH")}`;
 
+      if (typeof epsVal === "number" && epsVal > 0) {
+        document.getElementById("val-eps").value = epsVal.toFixed(2);
+      }
       document.getElementById("pos-entry").value = Number(livePrice).toFixed(2);
       document.getElementById("pos-stop").value = (Number(livePrice) * 0.94).toFixed(2);
 
