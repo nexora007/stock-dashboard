@@ -30,4 +30,541 @@
 
           <!-- Dropdown Suggestions -->
           <div id="suggestions-dropdown"
-            class="hidden absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-72 overflow-y-auto z-50 divide-y divide-slate
+            class="hidden absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-72 overflow-y-auto z-50 divide-y divide-slate-800/80">
+          </div>
+        </div>
+
+        <button id="load-btn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition">
+          ดึงข้อมูล
+        </button>
+
+        <input id="api-key-input" type="password" placeholder="Finnhub API Key (Optional)"
+          class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-44 focus:outline-none focus:border-emerald-400" />
+        <button id="save-key-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs border border-slate-700">
+          บันทึก Key
+        </button>
+      </div>
+    </header>
+
+    <!-- Status Banner -->
+    <div id="status-bar" class="text-xs px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex flex-wrap justify-between gap-2">
+      <span id="data-source-label">โหมด: ข้อมูลตัวอย่างพร้อมใช้งาน (ใส่ Finnhub API Key เพื่อดึงราคา Real-time)</span>
+      <span id="last-updated" class="text-slate-400">อัปเดตล่าสุด: -</span>
+    </div>
+
+    <!-- Quote & Key Metrics -->
+    <section class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 col-span-2 flex items-center gap-3.5">
+        <div id="disp-logo-wrap" class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+          <img id="disp-logo" src="" alt="" class="w-8 h-8 object-contain hidden" />
+          <span id="disp-logo-fallback" class="text-sm font-bold text-emerald-400">NVDA</span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <span id="disp-symbol" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">NVDA</span>
+            <span id="disp-change" class="text-xs font-semibold text-emerald-400">+0.00%</span>
+          </div>
+          <div id="disp-name" class="text-sm text-slate-300 truncate mt-1">NVIDIA Corporation</div>
+          <div id="disp-price" class="text-2xl font-bold mt-0.5">$0.00</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-slate-400">P/E Ratio</div>
+        <div id="m-pe" class="text-xl font-bold mt-1">-</div>
+        <div class="text-xs text-slate-500 mt-1">Price / Earnings</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-slate-400">EPS (TTM)</div>
+        <div id="m-eps" class="text-xl font-bold mt-1">-</div>
+        <div class="text-xs text-slate-500 mt-1">กำไรต่อหุ้น</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-slate-400">ROE</div>
+        <div id="m-roe" class="text-xl font-bold mt-1">-</div>
+        <div class="text-xs text-slate-500 mt-1">ผลตอบแทนผู้ถือหุ้น</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-slate-400">Debt / Equity</div>
+        <div id="m-de" class="text-xl font-bold mt-1">-</div>
+        <div class="text-xs text-slate-500 mt-1">หนี้สินต่อทุน</div>
+      </div>
+    </section>
+
+    <!-- Chart + Financial Statements -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-semibold mb-3">กราฟราคา (Price Trend)</h2>
+          <canvas id="stockChart" height="210"></canvas>
+        </div>
+        <p class="text-xs text-slate-500 mt-3">* กราฟเริ่มต้นแสดงชุดข้อมูลอ้างอิง สามารถต่อยอดดึง Historical Candles เพิ่มเติมได้</p>
+      </div>
+
+      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-base font-semibold">ตารางงบการเงิน (Financial Statements)</h2>
+          <div class="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+            <button data-stmt="income" class="stmt-tab px-3 py-1 rounded-md bg-emerald-500 text-slate-950 font-semibold">งบกำไรขาดทุน</button>
+            <button data-stmt="balance" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">งบดุล</button>
+            <button data-stmt="cashflow" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">กระแสเงินสด</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                <th class="py-2 pr-4">รายการ (หน่วย: ล้าน USD)</th>
+                <th class="py-2 px-3 text-right">FY2024</th>
+                <th class="py-2 px-3 text-right">FY2025</th>
+                <th class="py-2 pl-3 text-right">TTM / ล่าสุด</th>
+              </tr>
+            </thead>
+            <tbody id="stmt-body" class="divide-y divide-slate-800/70"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calculators Suite -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+        <h2 class="text-base font-semibold text-emerald-400">1. คำนวณมูลค่าเหมาะสม & Margin of Safety</h2>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">EPS คาดการณ์ ($)</label>
+            <input id="val-eps" type="number" step="0.01" value="3.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">Target P/E (เท่า)</label>
+            <input id="val-pe" type="number" step="0.5" value="30" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-slate-400 block mb-1">ส่วนเผื่อความปลอดภัย MOS (%)</label>
+            <input id="val-mos" type="number" step="1" value="20" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Fair Value โดยประมาณ:</span>
+            <span id="val-fair" class="font-bold text-slate-100">$0.00</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">ราคาเข้าซื้อที่เผื่อ MOS:</span>
+            <span id="val-buy" class="font-bold text-emerald-400">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+        <h2 class="text-base font-semibold text-emerald-400">2. คำนวณขนาดไม้ & ความเสี่ยง (Risk)</h2>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">ขนาดพอร์ต (บาท/USD)</label>
+            <input id="pos-capital" type="number" step="100" value="100000" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">ยอมรับความเสี่ยง/ไม้ (%)</label>
+            <input id="pos-risk-pct" type="number" step="0.1" value="1.5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">ราคาเข้าซื้อ (Entry)</label>
+            <input id="pos-entry" type="number" step="0.01" value="138.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">จุด Stop Loss</label>
+            <input id="pos-stop" type="number" step="0.01" value="130.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-slate-400">ขาดทุนสูงสุดที่รับได้/ไม้:</span>
+            <span id="pos-max-loss" class="font-bold text-rose-400">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">จำนวนหุ้นที่ควรซื้อ:</span>
+            <span id="pos-shares" class="font-bold text-emerald-400">0 หุ้น</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+        <h2 class="text-base font-semibold text-emerald-400">3. คำนวณ DCA ทบต้น</h2>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">ต่อเดือน</label>
+            <input id="dca-m" type="number" step="500" value="3000" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">กี่ปี</label>
+            <input id="dca-y" type="number" min="1" max="40" value="5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">ผลตอบแทน %/ปี</label>
+            <input id="dca-r" type="number" step="0.5" value="15" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-slate-400">เงินต้นรวม:</span>
+            <span id="dca-prin" class="font-semibold">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">มูลค่าพอร์ตคาดการณ์:</span>
+            <span id="dca-fv" class="font-bold text-emerald-400">0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const catalog = [
+      { symbol: "NVDA", name: "NVIDIA Corporation", domain: "nvidia.com", sector: "Semiconductors", price: 138.50, changePct: 2.45, pe: 46.2, eps: 3.00, roe: "88.5%", de: "0.41", history: [105, 112, 118, 115, 126, 133, 138.5] },
+      { symbol: "MU", name: "Micron Technology, Inc.", domain: "micron.com", sector: "Memory & Storage", price: 104.20, changePct: 1.82, pe: 14.8, eps: 7.04, roe: "19.4%", de: "0.28", history: [82, 88, 85, 94, 99, 101, 104.2] },
+      { symbol: "AAPL", name: "Apple Inc.", domain: "apple.com", sector: "Consumer Tech", price: 229.00, changePct: 0.74, pe: 33.5, eps: 6.84, roe: "147.0%", de: "1.45", history: [195, 202, 210, 208, 218, 224, 229.0] },
+      { symbol: "MSFT", name: "Microsoft Corporation", domain: "microsoft.com", sector: "Cloud & AI", price: 424.50, changePct: 1.15, pe: 35.1, eps: 12.09, roe: "36.2%", de: "0.33", history: [390, 401, 398, 410, 416, 420, 424.5] },
+      { symbol: "GOOGL", name: "Alphabet Inc.", domain: "abc.xyz", sector: "Search & Cloud", price: 176.80, changePct: -0.45, pe: 22.8, eps: 7.75, roe: "31.5%", de: "0.09", history: [160, 165, 170, 168, 174, 178, 176.8] },
+      { symbol: "AMZN", name: "Amazon.com, Inc.", domain: "amazon.com", sector: "E-Commerce & AWS", price: 196.40, changePct: 1.52, pe: 41.0, eps: 4.79, roe: "24.8%", de: "0.56", history: [172, 178, 181, 185, 189, 193, 196.4] },
+      { symbol: "META", name: "Meta Platforms, Inc.", domain: "meta.com", sector: "Social & AI", price: 582.10, changePct: 0.92, pe: 26.4, eps: 22.05, roe: "35.7%", de: "0.24", history: [510, 528, 540, 552, 565, 575, 582.1] },
+      { symbol: "TSLA", name: "Tesla, Inc.", domain: "tesla.com", sector: "EV & Robotics", price: 254.30, changePct: -1.18, pe: 68.5, eps: 3.71, roe: "17.9%", de: "0.18", history: [215, 228, 240, 235, 248, 260, 254.3] },
+      { symbol: "AMD", name: "Advanced Micro Devices, Inc.", domain: "amd.com", sector: "Semiconductors", price: 152.60, changePct: 2.10, pe: 82.0, eps: 1.86, roe: "5.4%", de: "0.04", history: [135, 140, 138, 144, 147, 150, 152.6] },
+      { symbol: "AVGO", name: "Broadcom Inc.", domain: "broadcom.com", sector: "Networking & AI Chips", price: 174.90, changePct: 1.34, pe: 38.2, eps: 4.58, roe: "28.1%", de: "1.12", history: [145, 152, 156, 160, 166, 171, 174.9] }
+    ];
+
+    const defaultStatements = {
+      income: [
+        ["รายได้รวม (Revenue)", "60,922", "130,497", "148,500"],
+        ["กำไรขั้นต้น (Gross Profit)", "44,301", "97,858", "112,100"],
+        ["กำไรสุทธิ (Net Income)", "29,760", "72,880", "84,200"]
+      ],
+      balance: [
+        ["เงินสดและรายการเทียบเท่า", "25,984", "43,210", "46,800"],
+        ["หนี้สินรวม (Total Liabilities)", "22,750", "30,840", "32,100"],
+        ["ส่วนของผู้ถือหุ้น (Equity)", "42,978", "79,327", "91,400"]
+      ],
+      cashflow: [
+        ["กระแสเงินสดจากการดำเนินงาน", "28,090", "64,089", "73,500"],
+        ["รายจ่ายฝ่ายทุน (CapEx)", "-1,069", "-3,236", "-3,900"],
+        ["กระแสเงินสดอิสระ (FCF)", "27,021", "60,853", "69,600"]
+      ]
+    };
+
+    let currentTicker = "NVDA";
+    let currentStmtType = "income";
+    let chartInstance = null;
+    let searchTimer = null;
+
+    const tickerInput = document.getElementById("ticker-input");
+    const dropdownEl = document.getElementById("suggestions-dropdown");
+    const apiKeyInput = document.getElementById("api-key-input");
+    apiKeyInput.value = localStorage.getItem("finnhub_key") || "";
+
+    document.getElementById("save-key-btn").addEventListener("click", () => {
+      localStorage.setItem("finnhub_key", apiKeyInput.value.trim());
+      alert("บันทึก API Key ลงในเบราว์เซอร์เรียบร้อยแล้ว");
+    });
+
+    function getLogoUrl(item) {
+      if (item.domain) {
+        return `https://logo.clearbit.com/${item.domain}`;
+      }
+      return "";
+    }
+
+    function renderLogoInto(imgEl, fallbackEl, item) {
+      const url = getLogoUrl(item);
+      fallbackEl.textContent = item.symbol.slice(0, 4);
+      if (!url) {
+        imgEl.classList.add("hidden");
+        fallbackEl.classList.remove("hidden");
+        return;
+      }
+      imgEl.onload = () => {
+        imgEl.classList.remove("hidden");
+        fallbackEl.classList.add("hidden");
+      };
+      imgEl.onerror = () => {
+        imgEl.classList.add("hidden");
+        fallbackEl.classList.remove("hidden");
+      };
+      imgEl.src = url;
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        dropdownEl.innerHTML = `<div class="px-3.5 py-3 text-xs text-slate-400">ไม่พบหุ้นที่ตรงกัน กด "ดึงข้อมูล" เพื่อค้นหาตัวย่อโดยตรงได้</div>`;
+        dropdownEl.classList.remove("hidden");
+        return;
+      }
+
+      dropdownEl.innerHTML = items.map((item, idx) => {
+        const logoUrl = getLogoUrl(item);
+        return `
+          <button type="button" data-idx="${idx}"
+            class="suggestion-item w-full text-left px-3 py-2.5 hover:bg-slate-800/90 flex items-center gap-3 transition">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+              ${logoUrl
+                ? `<img src="${logoUrl}" alt="${item.symbol}" class="w-5 h-5 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+                : ""}
+              <span class="${logoUrl ? "hidden" : "flex"} w-full h-full items-center justify-center text-[10px] font-bold text-emerald-400">
+                ${item.symbol.slice(0, 3)}
+              </span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-emerald-400">${item.symbol}</span>
+                ${item.sector ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 truncate">${item.sector}</span>` : ""}
+              </div>
+              <div class="text-xs text-slate-300 truncate mt-0.5">${item.name}</div>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      dropdownEl.classList.remove("hidden");
+
+      dropdownEl.querySelectorAll(".suggestion-item").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const chosen = items[Number(btn.dataset.idx)];
+          tickerInput.value = chosen.symbol;
+          document.getElementById("search-badge").textContent = chosen.symbol.slice(0, 2);
+          dropdownEl.classList.add("hidden");
+          loadStock(chosen.symbol, chosen);
+        });
+      });
+    }
+
+    async function filterOrSearch(query) {
+      const q = (query || "").trim().toLowerCase();
+      const localMatches = !q
+        ? catalog
+        : catalog.filter((c) =>
+            c.symbol.toLowerCase().includes(q) ||
+            c.name.toLowerCase().includes(q) ||
+            (c.sector && c.sector.toLowerCase().includes(q))
+          );
+
+      renderSuggestions(localMatches);
+
+      const key = (apiKeyInput.value || localStorage.getItem("finnhub_key") || "").trim();
+      if (key && q.length >= 1) {
+        try {
+          const res = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(q)}&token=${encodeURIComponent(key)}`);
+          const data = await res.json();
+          if (data && Array.isArray(data.result)) {
+            const apiItems = data.result
+              .filter((r) => r.symbol && !r.symbol.includes("."))
+              .slice(0, 6)
+              .map((r) => {
+                const known = catalog.find((c) => c.symbol === r.symbol);
+                return known || {
+                  symbol: r.symbol,
+                  name: r.description || r.symbol,
+                  domain: "",
+                  sector: r.type || "Equity"
+                };
+              });
+
+            const merged = [...localMatches];
+            apiItems.forEach((item) => {
+              if (!merged.some((m) => m.symbol === item.symbol)) {
+                merged.push(item);
+              }
+            });
+            renderSuggestions(merged.slice(0, 8));
+          }
+        } catch (_) {
+          // คงผลลัพธ์จาก catalog เดิมไว้
+        }
+      }
+    }
+
+    tickerInput.addEventListener("focus", () => filterOrSearch(tickerInput.value));
+    tickerInput.addEventListener("input", () => {
+      const val = tickerInput.value.trim().toUpperCase();
+      document.getElementById("search-badge").textContent = (val || "ST").slice(0, 2);
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => filterOrSearch(val), 150);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!document.getElementById("search-container").contains(e.target)) {
+        dropdownEl.classList.add("hidden");
+      }
+    });
+
+    function renderChart(values) {
+      const ctx = document.getElementById("stockChart").getContext("2d");
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: values.map((_, i) => `P${i + 1}`),
+          datasets: [{
+            label: "Price ($)",
+            data: values,
+            borderColor: "#34d399",
+            backgroundColor: "rgba(52, 211, 153, 0.12)",
+            fill: true,
+            tension: 0.35
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } },
+            y: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } }
+          }
+        }
+      });
+    }
+
+    function renderStatement(rows) {
+      const tbody = document.getElementById("stmt-body");
+      tbody.innerHTML = (rows || []).map(([label, v1, v2, v3]) => `
+        <tr>
+          <td class="py-2.5 pr-4 text-slate-300">${label}</td>
+          <td class="py-2.5 px-3 text-right font-mono">${v1}</td>
+          <td class="py-2.5 px-3 text-right font-mono">${v2}</td>
+          <td class="py-2.5 pl-3 text-right font-mono text-emerald-400 font-semibold">${v3}</td>
+        </tr>
+      `).join("");
+    }
+
+    async function loadStock(ticker, metaOverride = null) {
+      const cleanTicker = (ticker || "NVDA").trim().toUpperCase();
+      currentTicker = cleanTicker;
+      tickerInput.value = cleanTicker;
+      document.getElementById("search-badge").textContent = cleanTicker.slice(0, 2);
+
+      const key = (apiKeyInput.value || localStorage.getItem("finnhub_key") || "").trim();
+      const found = catalog.find((c) => c.symbol === cleanTicker);
+
+      const base = {
+        symbol: cleanTicker,
+        name: (metaOverride && metaOverride.name) || (found && found.name) || `${cleanTicker} Corporation`,
+        domain: (metaOverride && metaOverride.domain) || (found && found.domain) || "",
+        price: (found && found.price) || 100.00,
+        changePct: (found && found.changePct) || 0.00,
+        pe: (found && found.pe) || "-",
+        eps: (found && found.eps) || 2.50,
+        roe: (found && found.roe) || "-",
+        de: (found && found.de) || "-",
+        history: (found && found.history) || [92, 95, 94, 98, 97, 99, 100],
+        statements: defaultStatements
+      };
+
+      let livePrice = base.price;
+      let liveChange = base.changePct;
+      let sourceText = "โหมด: ข้อมูลตัวอย่าง (ใส่ Finnhub API Key เพื่อดึงราคา Real-time)";
+
+      if (key) {
+        try {
+          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(cleanTicker)}&token=${encodeURIComponent(key)}`);
+          const q = await res.json();
+          if (q && typeof q.c === "number" && q.c > 0) {
+            livePrice = q.c;
+            liveChange = typeof q.dp === "number" ? q.dp : 0;
+            sourceText = `โหมด: ราคา Real-time จาก Finnhub (${cleanTicker})`;
+          }
+        } catch (_) {
+          sourceText = "ไม่สามารถดึง Real-time ได้ ชั่วคราวใช้ข้อมูลสำรอง";
+        }
+      }
+
+      renderLogoInto(
+        document.getElementById("disp-logo"),
+        document.getElementById("disp-logo-fallback"),
+        base
+      );
+
+      document.getElementById("disp-symbol").textContent = cleanTicker;
+      document.getElementById("disp-name").textContent = base.name;
+      document.getElementById("disp-price").textContent = `$${Number(livePrice).toFixed(2)}`;
+
+      const chgEl = document.getElementById("disp-change");
+      const sign = liveChange >= 0 ? "+" : "";
+      chgEl.textContent = `${sign}${Number(liveChange).toFixed(2)}%`;
+      chgEl.className = `text-xs font-semibold ${liveChange >= 0 ? "text-emerald-400" : "text-rose-400"}`;
+
+      document.getElementById("m-pe").textContent = base.pe === "-" ? "-" : `${base.pe}x`;
+      document.getElementById("m-eps").textContent = `$${Number(base.eps).toFixed(2)}`;
+      document.getElementById("m-roe").textContent = base.roe;
+      document.getElementById("m-de").textContent = base.de;
+
+      document.getElementById("data-source-label").textContent = sourceText;
+      document.getElementById("last-updated").textContent = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString("th-TH")}`;
+
+      document.getElementById("pos-entry").value = Number(livePrice).toFixed(2);
+      document.getElementById("pos-stop").value = (Number(livePrice) * 0.94).toFixed(2);
+
+      renderChart(base.history);
+      renderStatement(base.statements[currentStmtType]);
+      calcAll();
+    }
+
+    function calcAll() {
+      const eps = parseFloat(document.getElementById("val-eps").value) || 0;
+      const pe = parseFloat(document.getElementById("val-pe").value) || 0;
+      const mos = (parseFloat(document.getElementById("val-mos").value) || 0) / 100;
+      const fair = eps * pe;
+      const buyPrice = fair * (1 - Math.min(Math.max(mos, 0), 0.95));
+      document.getElementById("val-fair").textContent = `$${fair.toFixed(2)}`;
+      document.getElementById("val-buy").textContent = `$${buyPrice.toFixed(2)}`;
+
+      const cap = parseFloat(document.getElementById("pos-capital").value) || 0;
+      const riskPct = (parseFloat(document.getElementById("pos-risk-pct").value) || 0) / 100;
+      const entry = parseFloat(document.getElementById("pos-entry").value) || 0;
+      const stop = parseFloat(document.getElementById("pos-stop").value) || 0;
+      const maxLoss = cap * riskPct;
+      const diffPerShare = Math.abs(entry - stop);
+      const shares = diffPerShare > 0 ? Math.floor(maxLoss / diffPerShare) : 0;
+      document.getElementById("pos-max-loss").textContent = `${Math.round(maxLoss).toLocaleString()}`;
+      document.getElementById("pos-shares").textContent = `${shares.toLocaleString()} หุ้น`;
+
+      const m = parseFloat(document.getElementById("dca-m").value) || 0;
+      const y = parseFloat(document.getElementById("dca-y").value) || 0;
+      const r = ((parseFloat(document.getElementById("dca-r").value) || 0) / 100) / 12;
+      const n = y * 12;
+      const prin = m * n;
+      const fv = r > 0 ? m * (((Math.pow(1 + r, n) - 1) / r) * (1 + r)) : prin;
+      document.getElementById("dca-prin").textContent = `${Math.round(prin).toLocaleString()}`;
+      document.getElementById("dca-fv").textContent = `${Math.round(fv).toLocaleString()}`;
+    }
+
+    document.getElementById("load-btn").addEventListener("click", () => {
+      dropdownEl.classList.add("hidden");
+      loadStock(tickerInput.value);
+    });
+
+    tickerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        dropdownEl.classList.add("hidden");
+        loadStock(tickerInput.value);
+      }
+    });
+
+    document.querySelectorAll(".stmt-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".stmt-tab").forEach((b) => {
+          b.className = "stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800";
+        });
+        btn.className = "stmt-tab px-3 py-1 rounded-md bg-emerald-500 text-slate-950 font-semibold";
+        currentStmtType = btn.dataset.stmt;
+        renderStatement(defaultStatements[currentStmtType]);
+      });
+    });
+
+    ["val-eps", "val-pe", "val-mos", "pos-capital", "pos-risk-pct", "pos-entry", "pos-stop", "dca-m", "dca-y", "dca-r"]
+      .forEach((id) => document.getElementById(id).addEventListener("input", calcAll));
+
+    loadStock("NVDA");
+  </script>
+</body>
+</html>
