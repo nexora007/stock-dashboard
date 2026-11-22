@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Stock Dashboard (Self-Host)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Stock Analysis & DCA Lab</h1>
+        <p class="text-sm text-slate-400">โครงสร้างเริ่มต้นสำหรับเขียนโค้ดและโฮสต์เอง</p>
+      </div>
+      <div class="flex gap-2" id="ticker-buttons"></div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- กราฟราคา -->
+      <section class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-baseline justify-between mb-4">
+          <div>
+            <span id="stock-symbol" class="text-xs font-semibold uppercase px-2 py-1 rounded bg-emerald-500/15 text-emerald-400">NVDA</span>
+            <h2 id="stock-name" class="text-lg font-semibold mt-1">NVIDIA Corp.</h2>
+          </div>
+          <div class="text-right">
+            <div id="stock-price" class="text-2xl font-bold">$0.00</div>
+            <div id="stock-pe" class="text-xs text-slate-400">P/E: -</div>
+          </div>
+        </div>
+        <canvas id="priceChart" height="120"></canvas>
+      </section>
+
+      <!-- เครื่องมือจำลอง DCA -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <h2 class="text-lg font-semibold">DCA Simulator</h2>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">ออมต่อเดือน (บาท)</label>
+          <input id="dca-monthly" type="number" value="3000" step="500" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">ระยะเวลา (ปี)</label>
+          <input id="dca-years" type="number" value="5" min="1" max="40" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">ผลตอบแทนคาดหวังต่อปี (%)</label>
+          <input id="dca-rate" type="number" value="15" step="0.5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div class="pt-3 border-t border-slate-800 space-y-1">
+          <div class="flex justify-between text-xs text-slate-400">
+            <span>เงินต้นรวม</span>
+            <span id="dca-principal">0 บาท</span>
+          </div>
+          <div class="flex justify-between text-base font-bold text-emerald-400">
+            <span>มูลค่าพอร์ตโดยประมาณ</span>
+            <span id="dca-future">0 บาท</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const stocks = {
+      NVDA: { name: "NVIDIA Corp.", price: 138.5, pe: 46.2, cagr: 18, history: [105, 112, 118, 115, 126, 133, 138.5] },
+      MU:   { name: "Micron Technology", price: 104.2, pe: 14.8, cagr: 14, history: [82, 88, 85, 94, 99, 101, 104.2] },
+      AAPL: { name: "Apple Inc.", price: 229.0, pe: 33.5, cagr: 10, history: [195, 202, 210, 208, 218, 224, 229.0] }
+    };
+
+    let currentTicker = "NVDA";
+    let chart;
+
+    function renderButtons() {
+      const container = document.getElementById("ticker-buttons");
+      container.innerHTML = "";
+      Object.keys(stocks).forEach((ticker) => {
+        const btn = document.createElement("button");
+        btn.textContent = ticker;
+        btn.className = `px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+          ticker === currentTicker
+            ? "bg-emerald-500 text-slate-950"
+            : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+        }`;
+        btn.onclick = () => selectStock(ticker);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectStock(ticker) {
+      currentTicker = ticker;
+      const s = stocks[ticker];
+      document.getElementById("stock-symbol").textContent = ticker;
+      document.getElementById("stock-name").textContent = s.name;
+      document.getElementById("stock-price").textContent = `$${s.price.toFixed(2)}`;
+      document.getElementById("stock-pe").textContent = `P/E: ${s.pe}x`;
+      document.getElementById("dca-rate").value = s.cagr;
+
+      renderButtons();
+      updateChart(s.history);
+      calcDCA();
+    }
+
+    function updateChart(data) {
+      const ctx = document.getElementById("priceChart").getContext("2d");
+      const labels = data.map((_, i) => `T-${data.length - 1 - i}`);
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Price ($)",
+            data,
+            borderColor: "#34d399",
+            backgroundColor: "rgba(52, 211, 153, 0.12)",
+            fill: true,
+            tension: 0.35
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } },
+            y: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } }
+          }
+        }
+      });
+    }
+
+    function calcDCA() {
+      const monthly = parseFloat(document.getElementById("dca-monthly").value) || 0;
+      const years = parseFloat(document.getElementById("dca-years").value) || 0;
+      const annualRate = (parseFloat(document.getElementById("dca-rate").value) || 0) / 100;
+
+      const months = years * 12;
+      const r = annualRate / 12;
+      const principal = monthly * months;
+      const futureValue = r > 0
+        ? monthly * (((Math.pow(1 + r, months) - 1) / r) * (1 + r))
+        : principal;
+
+      document.getElementById("dca-principal").textContent = `${Math.round(principal).toLocaleString()} บาท`;
+      document.getElementById("dca-future").textContent = `${Math.round(futureValue).toLocaleString()} บาท`;
+    }
+
+    ["dca-monthly", "dca-years", "dca-rate"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", calcDCA);
+    });
+
+    selectStock("NVDA");
+  </script>
+</body>
+</html>
