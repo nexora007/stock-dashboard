@@ -130,15 +130,15 @@
         <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <h2 class="text-base font-semibold text-emerald-400">สรุปข่าวรายวัน (Daily News Brief)</h2>
-            <p class="text-xs text-slate-400">แปลและย่อยประเด็นสำคัญเพื่ออ่านจับทิศทางธุรกิจ</p>
+            <p class="text-xs text-slate-400">ประเด็นสำคัญเพื่ออ่านจับทิศทางธุรกิจ (โหมดประหยัดโควตา)</p>
           </div>
-          <span id="news-mode-badge" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300">สรุปประเด็นหลัก</span>
+          <span id="news-mode-badge" class="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300">โน้ตสรุปตั้งต้น</span>
         </div>
 
         <div id="news-list" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
 
         <p class="text-[11px] text-slate-500">
-          * หมายเหตุ: หากต้องการให้สรุปข่าวอัตโนมัติรายวันแบบสดใหม่ สามารถต่อ endpoint สรุปข่าวผ่าน Cloudflare Worker หรือผู้ให้บริการ AI เพิ่มเติมได้
+          * ยังไม่ได้เชื่อมต่อ AI สรุปข่าวสด เพื่อประหยัดโควตาและหลีกเลี่ยงค่าใช้จ่ายที่ไม่จำเป็นในระยะเริ่มต้น
         </p>
       </div>
     </section>
@@ -148,9 +148,9 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
         <div>
           <h2 class="text-base font-semibold text-emerald-400">หุ้นน่าจับตามอง & ปัจจัยขับเคลื่อน (Watchlist & Catalysts)</h2>
-          <p class="text-xs text-slate-400">คัดหุ้นตัวอย่างเพื่อศึกษาตัวขับเคลื่อนธุรกิจ กดที่การ์ดเพื่อโหลดหุ้นนั้นขึ้นมาวิเคราะห์ทันที</p>
+          <p class="text-xs text-slate-400">ดึงราคาสดผ่าน Worker ให้การ์ดหลัก • กดที่การ์ดเพื่อโหลดหุ้นนั้นขึ้นมาวิเคราะห์ทันที</p>
         </div>
-        <span class="text-xs text-slate-500">* เพื่อการศึกษาและตั้งสมมติฐาน ไม่ใช่คำแนะนำการลงทุน</span>
+        <span id="watchlist-status" class="text-xs text-slate-400">กำลังอัปเดตราคา Watchlist...</span>
       </div>
 
       <div id="watchlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
@@ -160,15 +160,21 @@
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
         <div>
-          <h2 class="text-base font-semibold mb-3">กราฟราคา (Price Trend)</h2>
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <h2 class="text-base font-semibold">กราฟราคา (Price Trend)</h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">ข้อมูลตัวอย่าง P1–P7</span>
+          </div>
           <canvas id="stockChart" height="210"></canvas>
         </div>
-        <p class="text-xs text-slate-500 mt-3">* กราฟเริ่มต้นแสดงชุดข้อมูลอ้างอิง สามารถต่อยอดดึง Historical Candles เพิ่มเติมได้</p>
+        <p class="text-xs text-slate-500 mt-3">* ชุดจุด P1–P7 เป็นกราฟจำลองเพื่อแสดงแนวโน้ม ยังไม่ใช่กราฟราคาจริงย้อนหลัง</p>
       </div>
 
       <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h2 class="text-base font-semibold">ตารางงบการเงิน (Financial Statements)</h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold">ตารางงบการเงิน (Financial Statements)</h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">ข้อมูลอ้างอิงตัวอย่าง</span>
+          </div>
           <div class="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
             <button data-stmt="income" class="stmt-tab px-3 py-1 rounded-md bg-emerald-500 text-slate-950 font-semibold">งบกำไรขาดทุน</button>
             <button data-stmt="balance" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">งบดุล</button>
@@ -364,7 +370,7 @@
         founded: "1998 (Alphabet ปรับโครงสร้าง 2015)",
         founders: "Larry Page, Sergey Brin",
         leaders: "Sundar Pichai (CEO)",
-        history: "กำเนิดจากเครื่องมือค้นหา Google ที่เปลี่ยนโฉมการเข้าถึงข้อมูลบนอินเทอร์เน็ต ก่อนขยายสู่ YouTube, Android, Google Cloud และปรับโครงสร้าง持หุ้นภายใต้ Alphabet",
+        history: "กำเนิดจากเครื่องมือค้นหา Google ที่เปลี่ยนโฉมการเข้าถึงข้อมูลบนอินเทอร์เน็ต ก่อนขยายสู่ YouTube, Android, Google Cloud และปรับโครงสร้างหุ้นภายใต้ Alphabet",
         driver: "รายได้โฆษณา Search & YouTube, การทำกำไรของ Google Cloud และการแข่งขันด้าน AI Search",
         news: [
           { tag: "Search & Cloud", title: "จับตาการปรับตัวของโมเดลการค้นหาและอัตรากำไรของ Google Cloud", summary: "ดูว่าประสิทธิภาพการสร้างรายได้จากโฆษณาและคลาวด์เป็นอย่างไรเมื่อเทียบกับต้นทุนโครงสร้างพื้นฐาน" }
@@ -528,12 +534,12 @@
       `).join("");
     }
 
-    function renderWatchlist() {
+    function renderWatchlistCards(picks) {
       const gridEl = document.getElementById("watchlist-grid");
-      const picks = catalog.filter((c) => c.featuredWatchlist);
-
       gridEl.innerHTML = picks.map((item) => {
-        const up = item.changePct >= 0;
+        const pct = typeof item.changePct === "number" ? item.changePct : 0;
+        const up = pct >= 0;
+        const priceNum = typeof item.price === "number" ? item.price : 0;
         return `
           <button type="button" data-symbol="${item.symbol}"
             class="watchlist-card text-left bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 flex flex-col justify-between gap-3 transition">
@@ -544,11 +550,11 @@
                   <span class="text-[11px] text-slate-400">${item.sector}</span>
                 </div>
                 <span class="text-xs font-semibold ${up ? "text-emerald-400" : "text-rose-400"}">
-                  ${up ? "+" : ""}${item.changePct.toFixed(2)}%
+                  ${up ? "+" : ""}${pct.toFixed(2)}%
                 </span>
               </div>
               <div class="text-sm font-semibold text-slate-100 truncate">${item.name}</div>
-              <div class="text-lg font-bold text-slate-100">$${item.price.toFixed(2)}</div>
+              <div class="text-lg font-bold text-slate-100">$${priceNum.toFixed(2)}</div>
             </div>
             <div class="pt-2.5 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
               <span class="text-emerald-400 font-semibold">ปัจจัยขับเคลื่อน:</span> ${item.driver}
@@ -563,6 +569,28 @@
           window.scrollTo({ top: 0, behavior: "smooth" });
         });
       });
+    }
+
+    async function refreshWatchlistLivePrices() {
+      const picks = catalog.filter((c) => c.featuredWatchlist).slice(0, 4);
+      renderWatchlistCards(picks);
+      const statusEl = document.getElementById("watchlist-status");
+
+      try {
+        const updated = await Promise.all(picks.map(async (item) => {
+          const res = await fetch(`${WORKER_URL}/?action=quote&symbol=${encodeURIComponent(item.symbol)}`);
+          const q = await res.json();
+          if (q && typeof q.c === "number" && q.c > 0) {
+            item.price = q.c;
+            if (typeof q.dp === "number") item.changePct = q.dp;
+          }
+          return item;
+        }));
+        renderWatchlistCards(updated);
+        statusEl.textContent = "ราคาสดจาก Worker (จำกัด 4 ตัวเพื่อประหยัดโควตา)";
+      } catch (_) {
+        statusEl.textContent = "แสดงราคาอ้างอิงชั่วคราว (เช็กการเชื่อมต่อ Worker)";
+      }
     }
 
     function renderSuggestions(items) {
@@ -861,7 +889,7 @@
     ["val-eps", "val-pe", "val-mos", "pos-capital", "pos-risk-pct", "pos-entry", "pos-stop", "dca-m", "dca-y", "dca-r"]
       .forEach((id) => document.getElementById(id).addEventListener("input", calcAll));
 
-    renderWatchlist();
+    refreshWatchlistLivePrices();
     loadStock("NVDA");
   </script>
 </body>
