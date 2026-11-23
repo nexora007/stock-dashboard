@@ -3,1038 +3,402 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NEXORA TRADING — Learning & Research Terminal</title>
+  <title>NEXORA TRADING — Financial Research Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ซ่อน Scrollbar ของแถบเมนูบนมือถือให้เลื่อนเนียนๆ */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-    <!-- Top Bar -->
-    <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-800 pb-4">
-      <div>
-        <div class="flex flex-wrap items-baseline gap-2.5">
-          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-emerald-400">NEXORA TRADING</h1>
-          <span class="text-xs text-slate-400 font-normal">กุว่างเลยทำเล่นๆ</span>
-        </div>
-        <p class="text-xs md:text-sm text-slate-400 mt-1">
-          Company Roots & Leadership • Research Notebook • Watchlist Catalysts • Scenario & Risk Lab
-        </p>
-      </div>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- Autocomplete Search Box -->
-        <div class="relative w-72" id="search-container">
-          <div class="flex items-center bg-slate-900 border border-slate-700 focus-within:border-emerald-400 rounded-lg px-2.5 py-1.5 gap-2">
-            <span id="search-badge" class="w-6 h-6 rounded-md bg-emerald-500/15 text-emerald-400 text-[11px] font-bold flex items-center justify-center shrink-0">
-              NV
-            </span>
-            <input id="ticker-input" type="text" value="NVDA" autocomplete="off"
-              placeholder="พิมพ์ชื่อ หรือ ตัวย่อหุ้น..."
-              class="bg-transparent text-sm uppercase w-full focus:outline-none text-slate-100 placeholder-slate-500" />
+  <!-- Top Navigation Header (Investing.com Style) -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <!-- Row 1: Logo + Search Bar + Status -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-baseline gap-2.5 cursor-pointer" onclick="switchPage('overview')">
+            <span class="text-xl md:text-2xl font-black tracking-tight text-emerald-400">NEXORA<span class="text-slate-100">TRADING</span></span>
+            <span class="text-[11px] text-slate-400 font-normal bg-slate-800 px-2 py-0.5 rounded-full">กุว่างเลยทำเล่นๆ</span>
           </div>
-
-          <div id="suggestions-dropdown"
-            class="hidden absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-72 overflow-y-auto z-50 divide-y divide-slate-800/80">
-          </div>
+          <span id="mobile-live-dot" class="md:hidden text-[11px] text-emerald-400 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Worker Ready
+          </span>
         </div>
 
-        <button id="load-btn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition">
-          ดึงข้อมูล
-        </button>
-      </div>
-    </header>
+        <!-- Global Search Bar -->
+        <div class="flex items-center gap-2 flex-1 max-w-xl">
+          <div class="relative flex-1" id="search-container">
+            <div class="flex items-center bg-slate-950 border border-slate-700 focus-within:border-emerald-400 rounded-lg px-3 py-1.5 gap-2">
+              <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input id="ticker-input" type="text" value="NVDA" autocomplete="off"
+                placeholder="ค้นหาหุ้น, ตัวย่อ (เช่น NVDA, AAPL, MU)..."
+                class="bg-transparent text-sm w-full focus:outline-none text-slate-100 placeholder-slate-500" />
+              <span id="search-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-emerald-400 shrink-0">NVDA</span>
+            </div>
 
-    <!-- Status Banner -->
-    <div id="status-bar" class="text-xs px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex flex-wrap justify-between gap-2">
-      <span id="data-source-label">กำลังเชื่อมต่อ Cloudflare Worker Proxy...</span>
-      <span id="last-updated" class="text-slate-400">อัปเดตล่าสุด: -</span>
-    </div>
-
-    <!-- Quote & Key Metrics -->
-    <section class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 col-span-2 flex items-center gap-3.5">
-        <div id="disp-logo-wrap" class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-          <img id="disp-logo" src="" alt="" class="w-8 h-8 object-contain hidden" />
-          <span id="disp-logo-fallback" class="text-sm font-bold text-emerald-400">NVDA</span>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center justify-between gap-2">
-            <span id="disp-symbol" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">NVDA</span>
-            <span id="disp-change" class="text-xs font-semibold text-emerald-400">+0.00%</span>
+            <div id="suggestions-dropdown"
+              class="hidden absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-72 overflow-y-auto z-50 divide-y divide-slate-800/80">
+            </div>
           </div>
-          <div id="disp-name" class="text-sm text-slate-300 truncate mt-1">NVIDIA Corporation</div>
-          <div id="disp-price" class="text-2xl font-bold mt-0.5">$0.00</div>
-        </div>
-      </div>
 
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div class="text-xs text-slate-400">P/E Ratio</div>
-        <div id="m-pe" class="text-xl font-bold mt-1">-</div>
-        <div class="text-xs text-slate-500 mt-1">Price / Earnings</div>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div class="text-xs text-slate-400">EPS (TTM)</div>
-        <div id="m-eps" class="text-xl font-bold mt-1">-</div>
-        <div class="text-xs text-slate-500 mt-1">กำไรต่อหุ้น</div>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div class="text-xs text-slate-400">ROE</div>
-        <div id="m-roe" class="text-xl font-bold mt-1">-</div>
-        <div class="text-xs text-slate-500 mt-1">ผลตอบแทนผู้ถือหุ้น</div>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div class="text-xs text-slate-400">Debt / Equity</div>
-        <div id="m-de" class="text-xl font-bold mt-1">-</div>
-        <div class="text-xs text-slate-500 mt-1">หนี้สินต่อทุน</div>
-      </div>
-    </section>
-
-    <!-- Company Roots & Daily News Brief -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Company Roots & Key People -->
-      <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <div>
-            <h2 class="text-base font-semibold text-emerald-400">รากเหง้าบริษัท & บุคคลสำคัญ</h2>
-            <p class="text-xs text-slate-400">จุดเริ่มต้น ผู้ร่วมก่อตั้ง ผู้ขับเคลื่อนหลัก และประวัติย่อ</p>
-          </div>
-          <span id="root-sector-badge" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">Semiconductors</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3">
-            <div class="text-slate-400">ปีที่ก่อตั้ง (Founded)</div>
-            <div id="root-founded" class="text-sm font-semibold text-slate-100 mt-1">-</div>
-          </div>
-          <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3">
-            <div class="text-slate-400">ผู้ร่วมก่อตั้ง (Co-Founders)</div>
-            <div id="root-founders" class="text-sm font-semibold text-slate-100 mt-1">-</div>
-          </div>
-          <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3 sm:col-span-2">
-            <div class="text-slate-400">ผู้นำ / บุคคลสำคัญที่ขับเคลื่อน (Key Leaders)</div>
-            <div id="root-leaders" class="text-sm font-semibold text-emerald-300 mt-1">-</div>
-          </div>
-        </div>
-
-        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 space-y-1.5">
-          <div class="text-xs font-semibold text-slate-300">ประวัติความเป็นมาโดยคร่าวๆ</div>
-          <p id="root-history" class="text-xs md:text-sm text-slate-300 leading-relaxed">-</p>
-        </div>
-      </div>
-
-      <!-- Daily News Summary -->
-      <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <div>
-            <h2 class="text-base font-semibold text-emerald-400">สรุปข่าวรายวัน (Daily News Brief)</h2>
-            <p class="text-xs text-slate-400">ประเด็นสำคัญเพื่ออ่านจับทิศทางธุรกิจ (โหมดประหยัดโควตา)</p>
-          </div>
-          <span id="news-mode-badge" class="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300">โน้ตสรุปตั้งต้น</span>
-        </div>
-
-        <div id="news-list" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
-
-        <p class="text-[11px] text-slate-500">
-          * ยังไม่ได้เชื่อมต่อ AI สรุปข่าวสด เพื่อประหยัดโควตาและหลีกเลี่ยงค่าใช้จ่ายที่ไม่จำเป็นในระยะเริ่มต้น
-        </p>
-      </div>
-    </section>
-
-    <!-- Personal Research Notebook (Zero API Quota) -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-base font-semibold text-emerald-400">สมุดบันทึกการบ้านรายหุ้น (Research Notebook)</h2>
-            <span id="note-ticker-badge" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">NVDA</span>
-          </div>
-          <p class="text-xs text-slate-400">จดสรุปโมเดลธุรกิจ ข้อสังเกต หรือสมมติฐานส่วนตัวของหุ้นตัวนี้ (เก็บในเครื่อง 0 โควตา)</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span id="note-save-status" class="text-xs text-slate-400">พร้อมบันทึก</span>
-          <button id="export-notes-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-            Export โน้ตทั้งหมด (.json)
+          <button id="load-btn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-1.5 rounded-lg text-sm transition shrink-0">
+            ค้นหา
           </button>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-        <div>
-          <label class="text-slate-300 font-semibold block mb-1.5">1. จุดแข็ง / คูเมืองธุรกิจ (Moat & Edge)</label>
-          <textarea id="note-moat" rows="4" placeholder="เช่น ครองส่วนแบ่งตลาดชิปหลัก, ลูกค้าย้ายค่ายยาก..."
-            class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none"></textarea>
-        </div>
-        <div>
-          <label class="text-slate-300 font-semibold block mb-1.5">2. ความเสี่ยง / จุดที่ต้องระวัง (Risks)</label>
-          <textarea id="note-risk" rows="4" placeholder="เช่น ธุรกิจเป็นวัฏจักร, คู่แข่งตัดราคา, P/E สูง..."
-            class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none"></textarea>
-        </div>
-        <div>
-          <label class="text-slate-300 font-semibold block mb-1.5">3. สรุปแผน & สิ่งที่ต้องตามต่อ (Action & Checklist)</label>
-          <textarea id="note-plan" rows="4" placeholder="เช่น รอติดตามงบไตรมาสหน้า, เข้าทยอยสะสมเมื่อ MOS > 20%..."
-            class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none"></textarea>
+        <!-- Right Status -->
+        <div class="hidden lg:flex flex-col items-end text-[11px]">
+          <span id="data-source-label" class="text-emerald-400 font-medium">เชื่อมต่อ Worker Proxy</span>
+          <span id="last-updated" class="text-slate-400">อัปเดต: -</span>
         </div>
       </div>
-    </section>
 
-    <!-- Watchlist & Key Catalysts -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
-        <div>
-          <h2 class="text-base font-semibold text-emerald-400">หุ้นน่าจับตามอง & ปัจจัยขับเคลื่อน (Watchlist & Catalysts)</h2>
-          <p class="text-xs text-slate-400">ดึงราคาสดผ่าน Worker ให้การ์ดหลัก 4 ตัว • กดที่การ์ดเพื่อโหลดหุ้นนั้นขึ้นมาวิเคราะห์ทันที</p>
+      <!-- Row 2: Category Navigation Tabs -->
+      <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar border-t border-slate-800/80 pt-1 text-xs md:text-sm font-medium">
+        <button data-page="overview" class="nav-tab px-4 py-2.5 border-b-2 border-emerald-400 text-emerald-400 font-bold whitespace-nowrap transition">
+          📊 ภาพรวม & งบการเงิน
+        </button>
+        <button data-page="watchlist" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+          ★ วอทช์ลิสต์ (Watchlist)
+        </button>
+        <button data-page="roots" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+          🏛️ รากเหง้าบริษัท & CEO
+        </button>
+        <button data-page="news-notes" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+          📰 ข่าวสาร & สมุดโน้ต
+        </button>
+        <button data-page="calculators" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+          🧮 เครื่องมือคำนวณ
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Active Stock Sub-Header Banner (Always visible across pages) -->
+  <div class="bg-slate-900/60 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+          <img id="disp-logo" src="" alt="" class="w-6 h-6 object-contain hidden" />
+          <span id="disp-logo-fallback" class="text-xs font-bold text-emerald-400">NVDA</span>
         </div>
-        <span id="watchlist-status" class="text-xs text-slate-400">กำลังอัปเดตราคา Watchlist...</span>
-      </div>
-
-      <div id="watchlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-    </section>
-
-    <!-- Chart + Financial Statements -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
         <div>
-          <div class="flex items-center justify-between gap-2 mb-3">
-            <h2 class="text-base font-semibold">กราฟราคา (Price Trend)</h2>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">ข้อมูลตัวอย่าง P1–P7</span>
-          </div>
-          <canvas id="stockChart" height="210"></canvas>
-        </div>
-        <p class="text-xs text-slate-500 mt-3">* ชุดจุด P1–P7 เป็นกราฟจำลองเพื่อแสดงแนวโน้ม ยังไม่ใช่กราฟราคาจริงย้อนหลัง</p>
-      </div>
-
-      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
-            <h2 class="text-base font-semibold">ตารางงบการเงิน (Financial Statements)</h2>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">ข้อมูลอ้างอิงตัวอย่าง</span>
+            <span id="disp-name" class="text-base md:text-lg font-bold text-slate-100">NVIDIA Corporation</span>
+            <span id="disp-symbol" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">NVDA</span>
           </div>
-          <div class="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
-            <button data-stmt="income" class="stmt-tab px-3 py-1 rounded-md bg-emerald-500 text-slate-950 font-semibold">งบกำไรขาดทุน</button>
-            <button data-stmt="balance" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">งบดุล</button>
-            <button data-stmt="cashflow" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">กระแสเงินสด</button>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-800 text-slate-400 text-xs">
-                <th class="py-2 pr-4">รายการ (หน่วย: ล้าน USD)</th>
-                <th class="py-2 px-3 text-right">FY2024</th>
-                <th class="py-2 px-3 text-right">FY2025</th>
-                <th class="py-2 pl-3 text-right">TTM / ล่าสุด</th>
-              </tr>
-            </thead>
-            <tbody id="stmt-body" class="divide-y divide-slate-800/70"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- Calculators & Scenario Lab -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- 1. Valuation + Bear/Base/Bull + PEG -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
-        <h2 class="text-base font-semibold text-emerald-400">1. ประเมินมูลค่า & 3 สมมติฐาน (Scenario)</h2>
-        <div class="grid grid-cols-2 gap-2.5 text-xs">
-          <div>
-            <label class="text-slate-400 block mb-1">EPS คาดการณ์ ($)</label>
-            <input id="val-eps" type="number" step="0.01" value="3.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">Base P/E (เท่า)</label>
-            <input id="val-pe" type="number" step="0.5" value="30" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">คาดการณ์โต %/ปี (Growth)</label>
-            <input id="val-growth" type="number" step="1" value="25" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">เผื่อ MOS (%)</label>
-            <input id="val-mos" type="number" step="1" value="20" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
-          <div class="bg-slate-950 border border-slate-800 rounded-lg p-2">
-            <div class="text-rose-400 font-semibold">Bear (-25%)</div>
-            <div id="scn-bear" class="font-bold text-slate-100 mt-0.5">$0.00</div>
-          </div>
-          <div class="bg-slate-950 border border-emerald-500/40 rounded-lg p-2">
-            <div class="text-emerald-400 font-semibold">Base Fair</div>
-            <div id="val-fair" class="font-bold text-slate-100 mt-0.5">$0.00</div>
-          </div>
-          <div class="bg-slate-950 border border-slate-800 rounded-lg p-2">
-            <div class="text-sky-400 font-semibold">Bull (+25%)</div>
-            <div id="scn-bull" class="font-bold text-slate-100 mt-0.5">$0.00</div>
-          </div>
-        </div>
-
-        <div class="pt-2.5 border-t border-slate-800 text-xs space-y-1.5">
-          <div class="flex justify-between">
-            <span class="text-slate-400">ราคาเข้าซื้อที่เผื่อ MOS:</span>
-            <span id="val-buy" class="font-bold text-emerald-400">$0.00</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Upside / Downside เทียบ Base:</span>
-            <span id="val-upside" class="font-bold">0.0%</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">PEG Ratio (P/E ÷ Growth):</span>
-            <span id="val-peg" class="font-bold text-slate-100">-</span>
-          </div>
+          <div class="text-xs text-slate-400" id="sub-sector">Semiconductors • NASDAQ</div>
         </div>
       </div>
 
-      <!-- 2. Position Sizing -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
-        <h2 class="text-base font-semibold text-emerald-400">2. คำนวณขนาดไม้ & ความเสี่ยง (Risk)</h2>
-        <div class="grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <label class="text-slate-400 block mb-1">ขนาดพอร์ต (บาท/USD)</label>
-            <input id="pos-capital" type="number" step="100" value="100000" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">ยอมรับความเสี่ยง/ไม้ (%)</label>
-            <input id="pos-risk-pct" type="number" step="0.1" value="1.5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">ราคาเข้าซื้อ (Entry)</label>
-            <input id="pos-entry" type="number" step="0.01" value="138.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">จุด Stop Loss</label>
-            <input id="pos-stop" type="number" step="0.01" value="130.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
-          <div class="flex justify-between">
-            <span class="text-slate-400">ขาดทุนสูงสุดที่รับได้/ไม้:</span>
-            <span id="pos-max-loss" class="font-bold text-rose-400">0</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">จำนวนหุ้นที่ควรซื้อ:</span>
-            <span id="pos-shares" class="font-bold text-emerald-400">0 หุ้น</span>
-          </div>
-        </div>
+      <div class="flex items-baseline gap-3">
+        <span id="disp-price" class="text-2xl md:text-3xl font-extrabold text-slate-100">$0.00</span>
+        <span id="disp-change" class="text-sm font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">+0.00%</span>
       </div>
-
-      <!-- 3. Compound DCA -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
-        <h2 class="text-base font-semibold text-emerald-400">3. คำนวณ DCA ทบต้น</h2>
-        <div class="grid grid-cols-3 gap-2 text-xs">
-          <div>
-            <label class="text-slate-400 block mb-1">ต่อเดือน</label>
-            <input id="dca-m" type="number" step="500" value="3000" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">กี่ปี</label>
-            <input id="dca-y" type="number" min="1" max="40" value="5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="text-slate-400 block mb-1">ผลตอบแทน %/ปี</label>
-            <input id="dca-r" type="number" step="0.5" value="15" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
-          <div class="flex justify-between">
-            <span class="text-slate-400">เงินต้นรวม:</span>
-            <span id="dca-prin" class="font-semibold">0</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">มูลค่าพอร์ตคาดการณ์:</span>
-            <span id="dca-fv" class="font-bold text-emerald-400">0</span>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </div>
 
-  <script>
-    const WORKER_URL = "https://stock-proxy.d2pkn724gr.workers.dev";
-    const NOTES_STORAGE_KEY = "nexora_research_notes_v1";
+  <!-- Main Content Area (Switched by Tabs) -->
+  <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1">
 
-    const catalog = [
-      {
-        symbol: "NVDA",
-        name: "NVIDIA Corporation",
-        domain: "nvidia.com",
-        sector: "Semiconductors",
-        founded: "1993",
-        founders: "Jensen Huang, Chris Malachowsky, Curtis Priem",
-        leaders: "Jensen Huang (CEO & Co-Founder)",
-        history: "เริ่มต้นจากการออกแบบชิปกราฟิก (GPU) สำหรับเกม 3D และต่อยอดสถาปัตยกรรม CUDA จนกลายเป็นโครงสร้างพื้นฐานสำคัญด้านการประมวลผล AI และ Data Center",
-        driver: "ความต้องการชิปประมวลผล AI และระบบ Data Center รุ่นใหม่ รวมถึงระบบซอฟต์แวร์/เครือข่ายที่เชื่อมโยงกัน",
-        featuredWatchlist: true,
-        news: [
-          { tag: "AI & Data Center", title: "จับตารอบการอัปเกรดโครงสร้างพื้นฐาน AI ของผู้ให้บริการคลาวด์รายใหญ่", summary: "ประเด็นสำคัญอยู่ที่กำลังการผลิต การส่งมอบชิปรุ่นใหม่ และอัตรากำไรขั้นต้นในระดับสูง" },
-          { tag: "Ecosystem", title: "ซอฟต์แวร์และระบบเครือข่ายยังคงเป็นตัวล็อกลูกค้าสำคัญ", summary: "นักวิเคราะห์ติดตามการต่อยอดจากฮาร์ดแวร์เดี่ยวไปสู่โซลูชันครบวงจรสำหรับองค์กร" }
-        ],
-        price: 138.50, changePct: 2.45, pe: 46.2, eps: 3.00, roe: "88.5%", de: "0.41", history: [105, 112, 118, 115, 126, 133, 138.5]
-      },
-      {
-        symbol: "MU",
-        name: "Micron Technology, Inc.",
-        domain: "micron.com",
-        sector: "Memory & Storage",
-        founded: "1978",
-        founders: "Ward Parkinson, Joe Parkinson, Dennis Wilson, Doug Pitman",
-        leaders: "Sanjay Mehrotra (President & CEO)",
-        history: "ก่อตั้งในรัฐไอดาโฮ สหรัฐอเมริกา พัฒนาจากทีมออกแบบหน่วยความจำ DRAM จนเป็นผู้ผลิตหน่วยความจำและสตอเรจระดับโลก ทั้ง DRAM, NAND และ HBM",
-        driver: "วัฏจักรราคาหน่วยความจำ (Memory Cycle) และการเติบโตของหน่วยความจำความเร็วสูง (HBM) สำหรับงาน AI",
-        featuredWatchlist: true,
-        news: [
-          { tag: "Memory Cycle", title: "ติดตามสมดุลอุปสงค์-อุปทานของ DRAM และหน่วยความจำ HBM", summary: "กลุ่มหน่วยความจำมีลักษณะเป็นวัฏจักรชัดเจน การบริหารสต็อกและราคาขายต่อหน่วยจึงเป็นหัวใจสำคัญ" },
-          { tag: "CapEx", title: "แผนการลงทุนขยายกำลังการผลิตและเทคโนโลยีโหนดใหม่", summary: "จับตาการใช้เงินลงทุน (CapEx) เทียบกับกระแสเงินสดอิสระในแต่ละไตรมาส" }
-        ],
-        price: 104.20, changePct: 1.82, pe: 14.8, eps: 7.04, roe: "19.4%", de: "0.28", history: [82, 88, 85, 94, 99, 101, 104.2]
-      },
-      {
-        symbol: "AAPL",
-        name: "Apple Inc.",
-        domain: "apple.com",
-        sector: "Consumer Tech",
-        founded: "1976",
-        founders: "Steve Jobs, Steve Wozniak, Ronald Wayne",
-        leaders: "Tim Cook (CEO)",
-        history: "เริ่มต้นจากคอมพิวเตอร์ส่วนบุคคล Apple I ก่อนพลิกฟื้นด้วย iPod, iPhone และระบบนิเวศฮาร์ดแวร์-ซอฟต์แวร์-บริการที่ผูกผู้บริโภคไว้ทั่วโลก",
-        driver: "ฐานผู้ใช้งานอุปกรณ์ที่ติดตั้งอยู่ทั่วโลก (Installed Base), รายได้กลุ่ม Services และฟีเจอร์ AI บนอุปกรณ์",
-        featuredWatchlist: true,
-        news: [
-          { tag: "Ecosystem & Services", title: "ติดตามการเติบโตของรายได้กลุ่ม Services และความภักดีต่อแบรนด์", summary: "กลุ่มบริการช่วยเพิ่มความสม่ำเสมอของรายได้และอัตรากำไรควบคู่ไปกับยอดขายฮาร์ดแวร์" },
-          { tag: "Supply Chain", title: "การกระจายฐานการผลิตและการบริหารต้นทุนชิ้นส่วน", summary: "ดูผลกระทบจากอัตราแลกเปลี่ยนและดีมานด์ในแต่ละภูมิภาคหลัก" }
-        ],
-        price: 229.00, changePct: 0.74, pe: 33.5, eps: 6.84, roe: "147.0%", de: "1.45", history: [195, 202, 210, 208, 218, 224, 229.0]
-      },
-      {
-        symbol: "MSFT",
-        name: "Microsoft Corporation",
-        domain: "microsoft.com",
-        sector: "Cloud & AI",
-        founded: "1975",
-        founders: "Bill Gates, Paul Allen",
-        leaders: "Satya Nadella (Chairman & CEO)",
-        history: "ผู้บุกเบิกซอฟต์แวร์ยุคพีซีผ่าน MS-DOS และ Windows ก่อนเปลี่ยนผ่านสู่ธุรกิจ Cloud (Azure) และซอฟต์แวร์องค์กรแบบ Subscription ภายใต้ยุคของ Satya Nadella",
-        driver: "การเติบโตของบริการคลาวด์ Azure, การฝัง AI ในชุดซอฟต์แวร์องค์กร และสัญญาใช้งานระยะยาวกับลูกค้าธุรกิจ",
-        featuredWatchlist: true,
-        news: [
-          { tag: "Cloud & Enterprise", title: "ติดตามอัตราการเติบโตของ Azure และการใช้งานฟีเจอร์ AI ในภาคธุรกิจ", summary: "จุดเน้นคือการแปลงงบลงทุนด้านโครงสร้างพื้นฐานคลาวด์ให้เป็นรายได้ต่อเนื่องขององค์กร" },
-          { tag: "Productivity", title: "ฐานลูกค้าองค์กรขนาดใหญ่ช่วยพยุงกระแสเงินสดจากการดำเนินงาน", summary: "จับตาความสามารถในการทำกำไรและทิศทางค่าใช้จ่ายฝ่ายทุน" }
-        ],
-        price: 424.50, changePct: 1.15, pe: 35.1, eps: 12.09, roe: "36.2%", de: "0.33", history: [390, 401, 398, 410, 416, 420, 424.5]
-      },
-      {
-        symbol: "GOOGL",
-        name: "Alphabet Inc.",
-        domain: "abc.xyz",
-        sector: "Search & Cloud",
-        founded: "1998 (Alphabet ปรับโครงสร้าง 2015)",
-        founders: "Larry Page, Sergey Brin",
-        leaders: "Sundar Pichai (CEO)",
-        history: "กำเนิดจากเครื่องมือค้นหา Google ที่เปลี่ยนโฉมการเข้าถึงข้อมูลบนอินเทอร์เน็ต ก่อนขยายสู่ YouTube, Android, Google Cloud และปรับโครงสร้างหุ้นภายใต้ Alphabet",
-        driver: "รายได้โฆษณา Search & YouTube, การทำกำไรของ Google Cloud และการแข่งขันด้าน AI Search",
-        news: [
-          { tag: "Search & Cloud", title: "จับตาการปรับตัวของโมเดลการค้นหาและอัตรากำไรของ Google Cloud", summary: "ดูว่าประสิทธิภาพการสร้างรายได้จากโฆษณาและคลาวด์เป็นอย่างไรเมื่อเทียบกับต้นทุนโครงสร้างพื้นฐาน" }
-        ],
-        price: 176.80, changePct: -0.45, pe: 22.8, eps: 7.75, roe: "31.5%", de: "0.09", history: [160, 165, 170, 168, 174, 178, 176.8]
-      },
-      {
-        symbol: "AMZN",
-        name: "Amazon.com, Inc.",
-        domain: "amazon.com",
-        sector: "E-Commerce & AWS",
-        founded: "1994",
-        founders: "Jeff Bezos",
-        leaders: "Andy Jassy (President & CEO)",
-        history: "เริ่มต้นจากการขายหนังสือออนไลน์ ก่อนขยายสู่แพลตฟอร์มอีคอมเมิร์ซขนาดใหญ่ โลจิสติกส์ และ Amazon Web Services (AWS) ที่กลายเป็นเครื่องยนต์ทำกำไรหลัก",
-        driver: "ความสามารถในการทำกำไรของ AWS, ประสิทธิภาพต้นทุนโลจิสติกส์ และรายได้โฆษณาบนแพลตฟอร์ม",
-        news: [
-          { tag: "AWS & Retail", title: "ติดตามการเร่งตัวของ AWS และประสิทธิภาพการกระจายสินค้า", summary: "นักลงทุนให้ความสำคัญกับสัดส่วนกำไรจากคลาวด์และการลดต้นทุนต่อหน่วยจัดส่ง" }
-        ],
-        price: 196.40, changePct: 1.52, pe: 41.0, eps: 4.79, roe: "24.8%", de: "0.56", history: [172, 178, 181, 185, 189, 193, 196.4]
-      },
-      {
-        symbol: "META",
-        name: "Meta Platforms, Inc.",
-        domain: "meta.com",
-        sector: "Social & AI",
-        founded: "2004",
-        founders: "Mark Zuckerberg, Eduardo Saverin, Andrew McCollum, Dustin Moskovitz, Chris Hughes",
-        leaders: "Mark Zuckerberg (Founder & CEO)",
-        history: "เริ่มต้นจากเครือข่ายสังคมในมหาวิทยาลัย ก่อนขยายสู่ Facebook, Instagram, WhatsApp และลงทุนด้าน AI และเทคโนโลยีเสมือนจริง",
-        driver: "ประสิทธิภาพระบบโฆษณาด้วย AI, จำนวนผู้ใช้งานรายวันในตระกูลแอป (Family of Apps) และการคุมวินัยค่าใช้จ่าย",
-        news: [
-          { tag: "Ad Tech & AI", title: "จับตาประสิทธิภาพการยิงโฆษณาและการใช้งานฟีเจอร์ AI บนแพลตฟอร์ม", summary: "ประเด็นหลักคือการเพิ่มมูลค่าต่อผู้ใช้งาน (ARPU) ควบคู่กับการบริหารงบลงทุน" }
-        ],
-        price: 582.10, changePct: 0.92, pe: 26.4, eps: 22.05, roe: "35.7%", de: "0.24", history: [510, 528, 540, 552, 565, 575, 582.1]
-      },
-      {
-        symbol: "TSLA",
-        name: "Tesla, Inc.",
-        domain: "tesla.com",
-        sector: "EV & Robotics",
-        founded: "2003",
-        founders: "Martin Eberhard, Marc Tarpenning (ร่วมขับเคลื่อนและขยายธุรกิจกับ Elon Musk)",
-        leaders: "Elon Musk (CEO)",
-        history: "บุกเบิกรถยนต์ไฟฟ้าสมรรถนะสูงและระบบขับเคลื่อนอัตโนมัติ พร้อมขยายสู่ระบบกักเก็บพลังงาน (Energy Storage) และหุ่นยนต์/AI",
-        driver: "ปริมาณการส่งมอบรถยนต์และราคาขายเฉลี่ย, อัตรากำไรธุรกิจพลังงาน และความคืบหน้าด้านซอฟต์แวร์/หุ่นยนต์",
-        news: [
-          { tag: "EV & Energy", title: "ติดตามยอดส่งมอบรถยนต์ การแข่งขันด้านราคา และธุรกิจกักเก็บพลังงาน", summary: "ดูสมดุลระหว่างการขยายปริมาณขายกับอัตรากำไรขั้นต้นของธุรกิจหลัก" }
-        ],
-        price: 254.30, changePct: -1.18, pe: 68.5, eps: 3.71, roe: "17.9%", de: "0.18", history: [215, 228, 240, 235, 248, 260, 254.3]
-      },
-      {
-        symbol: "AMD",
-        name: "Advanced Micro Devices, Inc.",
-        domain: "amd.com",
-        sector: "Semiconductors",
-        founded: "1969",
-        founders: "Jerry Sanders และกลุ่มวิศวกรร่วมก่อตั้ง",
-        leaders: "Lisa Su (Chair & CEO)",
-        history: "ผู้ผลิตเซมิคอนดักเตอร์ที่แข่งขันในตลาด CPU และ GPU พลิกฟื้นความสามารถในการแข่งขันอย่างโดดเด่นผ่านสถาปัตยกรรม Ryzen และ EPYC",
-        driver: "ส่วนแบ่งตลาดชิปเซิร์ฟเวอร์ EPYC, โปรเซสเซอร์ฝั่งลูกค้า และชิปเร่งความเร็วสำหรับ Data Center",
-        news: [
-          { tag: "Data Center", title: "ติดตามการขยายตัวของชิปเซิร์ฟเวอร์และโซลูชันเร่งความเร็วประมวลผล", summary: "โฟกัสอยู่ที่การชิงส่วนแบ่งตลาดในกลุ่มลูกค้าองค์กรและคลาวด์" }
-        ],
-        price: 152.60, changePct: 2.10, pe: 82.0, eps: 1.86, roe: "5.4%", de: "0.04", history: [135, 140, 138, 144, 147, 150, 152.6]
-      },
-      {
-        symbol: "AVGO",
-        name: "Broadcom Inc.",
-        domain: "broadcom.com",
-        sector: "Networking & AI Chips",
-        founded: "1961 (สืบเนื่องรากฐาน HP/Agilent semiconductor)",
-        founders: "Henry Samueli, Henry Nicholas (และรากฐานเดิมของกลุ่มเซมิคอนดักเตอร์)",
-        leaders: "Hock Tan (President & CEO)",
-        history: "เติบโตผ่านการผสานชิปเครือข่าย/การเชื่อมต่อเข้ากับกลยุทธ์การเข้าซื้อกิจการซอฟต์แวร์โครงสร้างพื้นฐานองค์กร เช่น VMware",
-        driver: "ชิปเครือข่ายความเร็วสูงสำหรับศูนย์ข้อมูล, ชิปออกแบบเฉพาะทาง (Custom AI) และรายได้ซอฟต์แวร์องค์กร",
-        news: [
-          { tag: "Networking & Software", title: "จับตาความต้องการชิปเครือข่าย AI และการผสานธุรกิจซอฟต์แวร์องค์กร", summary: "ดูการผสมผสานระหว่างรายได้ฮาร์ดแวร์เฉพาะทางกับกระแสเงินสดจากซอฟต์แวร์" }
-        ],
-        price: 174.90, changePct: 1.34, pe: 38.2, eps: 4.58, roe: "28.1%", de: "1.12", history: [145, 152, 156, 160, 166, 171, 174.9]
-      }
-    ];
-
-    const defaultStatements = {
-      income: [
-        ["รายได้รวม (Revenue)", "60,922", "130,497", "148,500"],
-        ["กำไรขั้นต้น (Gross Profit)", "44,301", "97,858", "112,100"],
-        ["กำไรสุทธิ (Net Income)", "29,760", "72,880", "84,200"]
-      ],
-      balance: [
-        ["เงินสดและรายการเทียบเท่า", "25,984", "43,210", "46,800"],
-        ["หนี้สินรวม (Total Liabilities)", "22,750", "30,840", "32,100"],
-        ["ส่วนของผู้ถือหุ้น (Equity)", "42,978", "79,327", "91,400"]
-      ],
-      cashflow: [
-        ["กระแสเงินสดจากการดำเนินงาน", "28,090", "64,089", "73,500"],
-        ["รายจ่ายฝ่ายทุน (CapEx)", "-1,069", "-3,236", "-3,900"],
-        ["กระแสเงินสดอิสระ (FCF)", "27,021", "60,853", "69,600"]
-      ]
-    };
-
-    let currentTicker = "NVDA";
-    let currentLivePrice = 138.50;
-    let currentStmtType = "income";
-    let chartInstance = null;
-    let searchTimer = null;
-
-    const tickerInput = document.getElementById("ticker-input");
-    const dropdownEl = document.getElementById("suggestions-dropdown");
-
-    // --- Research Notes (localStorage) ---
-    function loadAllNotes() {
-      try {
-        return JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || "{}");
-      } catch (_) {
-        return {};
-      }
-    }
-
-    function loadNoteForTicker(symbol) {
-      document.getElementById("note-ticker-badge").textContent = symbol;
-      const all = loadAllNotes();
-      const entry = all[symbol] || { moat: "", risk: "", plan: "" };
-      document.getElementById("note-moat").value = entry.moat || "";
-      document.getElementById("note-risk").value = entry.risk || "";
-      document.getElementById("note-plan").value = entry.plan || "";
-      document.getElementById("note-save-status").textContent = entry.updatedAt
-        ? `บันทึกล่าสุด: ${entry.updatedAt}`
-        : "ยังไม่มีบันทึกสำหรับหุ้นนี้";
-    }
-
-    function saveNoteForCurrentTicker() {
-      const all = loadAllNotes();
-      const nowStr = new Date().toLocaleTimeString("th-TH");
-      all[currentTicker] = {
-        moat: document.getElementById("note-moat").value,
-        risk: document.getElementById("note-risk").value,
-        plan: document.getElementById("note-plan").value,
-        updatedAt: nowStr
-      };
-      localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(all));
-      document.getElementById("note-save-status").textContent = `บันทึกอัตโนมัติแล้ว (${nowStr})`;
-    }
-
-    ["note-moat", "note-risk", "note-plan"].forEach((id) => {
-      document.getElementById(id).addEventListener("input", saveNoteForCurrentTicker);
-    });
-
-    document.getElementById("export-notes-btn").addEventListener("click", () => {
-      const dataStr = JSON.stringify(loadAllNotes(), null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `nexora-research-notes-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
-    function getLogoUrl(item) {
-      return item.domain ? `https://logo.clearbit.com/${item.domain}` : "";
-    }
-
-    function renderLogoInto(imgEl, fallbackEl, item) {
-      const url = getLogoUrl(item);
-      fallbackEl.textContent = item.symbol.slice(0, 4);
-      if (!url) {
-        imgEl.classList.add("hidden");
-        fallbackEl.classList.remove("hidden");
-        return;
-      }
-      imgEl.onload = () => {
-        imgEl.classList.remove("hidden");
-        fallbackEl.classList.add("hidden");
-      };
-      imgEl.onerror = () => {
-        imgEl.classList.add("hidden");
-        fallbackEl.classList.remove("hidden");
-      };
-      imgEl.src = url;
-    }
-
-    function renderCompanyRoots(info) {
-      document.getElementById("root-sector-badge").textContent = info.sector || "Equity";
-      document.getElementById("root-founded").textContent = info.founded || "ต้องตรวจสอบเพิ่มเติมจากรายงานบริษัท";
-      document.getElementById("root-founders").textContent = info.founders || "ต้องตรวจสอบเพิ่มเติมจากเอกสารก่อตั้ง";
-      document.getElementById("root-leaders").textContent = info.leaders || "ทีมผู้บริหารปัจจุบันของบริษัท";
-      document.getElementById("root-history").textContent = info.history ||
-        `${info.name} (${info.symbol}) — สามารถค้นหาประวัติเต็ม ผู้ร่วมก่อตั้ง และผู้บริหารปัจจุบันเพิ่มเติมจากรายงานประจำปี (10-K) หรือเว็บไซต์ทางการของบริษัทเพื่อทำความเข้าใจโมเดลธุรกิจตั้งแต่รากเหง้า`;
-    }
-
-    function renderNews(info) {
-      const listEl = document.getElementById("news-list");
-      const items = (info.news && info.news.length) ? info.news : [
-        {
-          tag: "Research Note",
-          title: `ประเด็นที่ควรติดตามของ ${info.symbol}`,
-          summary: "ตรวจสอบผลประกอบการล่าสุด อัตรากำไร กระแสเงินสด และข่าวสำคัญในอุตสาหกรรมเพื่อประกอบการวิเคราะห์"
-        }
-      ];
-
-      listEl.innerHTML = items.map((n) => `
-        <div class="bg-slate-950/75 border border-slate-800/90 rounded-xl p-3.5 space-y-1">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">${n.tag}</span>
-            <span class="text-[11px] text-slate-500">${info.symbol}</span>
-          </div>
-          <div class="text-sm font-semibold text-slate-100 leading-snug">${n.title}</div>
-          <p class="text-xs text-slate-400 leading-relaxed">${n.summary}</p>
+    <!-- PAGE 1: OVERVIEW & FINANCIALS -->
+    <div id="page-overview" class="page-section space-y-6">
+      <!-- Key Metrics Cards -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="text-xs text-slate-400">P/E Ratio (TTM)</div>
+          <div id="m-pe" class="text-2xl font-bold mt-1">-</div>
+          <div class="text-[11px] text-slate-500 mt-1">ราคาต่อกำไรสุทธิ</div>
         </div>
-      `).join("");
-    }
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="text-xs text-slate-400">EPS (TTM)</div>
+          <div id="m-eps" class="text-2xl font-bold mt-1">-</div>
+          <div class="text-[11px] text-slate-500 mt-1">กำไรต่อหุ้น</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="text-xs text-slate-400">ROE (TTM)</div>
+          <div id="m-roe" class="text-2xl font-bold mt-1">-</div>
+          <div class="text-[11px] text-slate-500 mt-1">ผลตอบแทนผู้ถือหุ้น</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div class="text-xs text-slate-400">Debt / Equity</div>
+          <div id="m-de" class="text-2xl font-bold mt-1">-</div>
+          <div class="text-[11px] text-slate-500 mt-1">หนี้สินต่อส่วนของผู้ถือหุ้น</div>
+        </div>
+      </section>
 
-    function renderWatchlistCards(picks) {
-      const gridEl = document.getElementById("watchlist-grid");
-      gridEl.innerHTML = picks.map((item) => {
-        const pct = typeof item.changePct === "number" ? item.changePct : 0;
-        const up = pct >= 0;
-        const priceNum = typeof item.price === "number" ? item.price : 0;
-        return `
-          <button type="button" data-symbol="${item.symbol}"
-            class="watchlist-card text-left bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 flex flex-col justify-between gap-3 transition">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-extrabold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">${item.symbol}</span>
-                  <span class="text-[11px] text-slate-400">${item.sector}</span>
-                </div>
-                <span class="text-xs font-semibold ${up ? "text-emerald-400" : "text-rose-400"}">
-                  ${up ? "+" : ""}${pct.toFixed(2)}%
-                </span>
-              </div>
-              <div class="text-sm font-semibold text-slate-100 truncate">${item.name}</div>
-              <div class="text-lg font-bold text-slate-100">$${priceNum.toFixed(2)}</div>
+      <!-- Chart + Financial Statements -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <h2 class="text-base font-semibold">กราฟแนวโน้มราคา (Price Trend)</h2>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">ข้อมูลตัวอย่าง P1–P7</span>
             </div>
-            <div class="pt-2.5 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
-              <span class="text-emerald-400 font-semibold">ปัจจัยขับเคลื่อน:</span> ${item.driver}
+            <canvas id="stockChart" height="220"></canvas>
+          </div>
+          <p class="text-xs text-slate-500 mt-3">* ชุดจุด P1–P7 เป็นกราฟจำลองเพื่อแสดงแนวโน้มเบื้องต้น</p>
+        </div>
+
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-semibold">ตารางงบการเงิน (Financial Statements)</h2>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">ข้อมูลอ้างอิงตัวอย่าง</span>
             </div>
-          </button>
-        `;
-      }).join("");
-
-      gridEl.querySelectorAll(".watchlist-card").forEach((card) => {
-        card.addEventListener("click", () => {
-          loadStock(card.dataset.symbol);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-      });
-    }
-
-    async function refreshWatchlistLivePrices() {
-      const picks = catalog.filter((c) => c.featuredWatchlist).slice(0, 4);
-      renderWatchlistCards(picks);
-      const statusEl = document.getElementById("watchlist-status");
-
-      try {
-        const updated = await Promise.all(picks.map(async (item) => {
-          const res = await fetch(`${WORKER_URL}/?action=quote&symbol=${encodeURIComponent(item.symbol)}`);
-          const q = await res.json();
-          if (q && typeof q.c === "number" && q.c > 0) {
-            item.price = q.c;
-            if (typeof q.dp === "number") item.changePct = q.dp;
-          }
-          return item;
-        }));
-        renderWatchlistCards(updated);
-        statusEl.textContent = "ราคาสดจาก Worker (จำกัด 4 ตัวเพื่อประหยัดโควตา)";
-      } catch (_) {
-        statusEl.textContent = "แสดงราคาอ้างอิงชั่วคราว (เช็กการเชื่อมต่อ Worker)";
-      }
-    }
-
-    function renderSuggestions(items) {
-      if (!items.length) {
-        dropdownEl.innerHTML = `<div class="px-3.5 py-3 text-xs text-slate-400">ไม่พบหุ้นที่ตรงกัน กด "ดึงข้อมูล" เพื่อค้นหาตัวย่อโดยตรงได้</div>`;
-        dropdownEl.classList.remove("hidden");
-        return;
-      }
-
-      dropdownEl.innerHTML = items.map((item, idx) => {
-        const logoUrl = getLogoUrl(item);
-        return `
-          <button type="button" data-idx="${idx}"
-            class="suggestion-item w-full text-left px-3 py-2.5 hover:bg-slate-800/90 flex items-center gap-3 transition">
-            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-              ${logoUrl
-                ? `<img src="${logoUrl}" alt="${item.symbol}" class="w-5 h-5 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
-                : ""}
-              <span class="${logoUrl ? "hidden" : "flex"} w-full h-full items-center justify-center text-[10px] font-bold text-emerald-400">
-                ${item.symbol.slice(0, 3)}
-              </span>
+            <div class="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+              <button data-stmt="income" class="stmt-tab px-3 py-1 rounded-md bg-emerald-500 text-slate-950 font-semibold">งบกำไรขาดทุน</button>
+              <button data-stmt="balance" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">งบดุล</button>
+              <button data-stmt="cashflow" class="stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800">กระแสเงินสด</button>
             </div>
-            <div class="min-w-0 flex-1">
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                  <th class="py-2.5 pr-4">รายการ (หน่วย: ล้าน USD)</th>
+                  <th class="py-2.5 px-3 text-right">FY2024</th>
+                  <th class="py-2.5 px-3 text-right">FY2025</th>
+                  <th class="py-2.5 pl-3 text-right">TTM / ล่าสุด</th>
+                </tr>
+              </thead>
+              <tbody id="stmt-body" class="divide-y divide-slate-800/70"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Jump Cards -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <button onclick="switchPage('roots')" class="text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
+          <div class="text-sm font-bold text-emerald-400">🏛️ อ่านรากเหง้าบริษัทนี้ →</div>
+          <p class="text-xs text-slate-400 mt-1">ดูปีที่ก่อตั้ง ผู้ร่วมก่อตั้ง CEO และประวัติความเป็นมา</p>
+        </button>
+        <button onclick="switchPage('news-notes')" class="text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
+          <div class="text-sm font-bold text-emerald-400">📝 จดโน้ตการบ้านหุ้นนี้ →</div>
+          <p class="text-xs text-slate-400 mt-1">อ่านสรุปประเด็นข่าวและบันทึก Moat / Risks ส่วนตัว</p>
+        </button>
+        <button onclick="switchPage('calculators')" class="text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
+          <div class="text-sm font-bold text-emerald-400">🧮 คำนวณมูลค่าเหมาะสม →</div>
+          <p class="text-xs text-slate-400 mt-1">ประเมินราคา Fair Value (Bear/Base/Bull) และขนาดไม้</p>
+        </button>
+      </section>
+    </div>
+
+    <!-- PAGE 2: WATCHLIST & CATALYSTS -->
+    <div id="page-watchlist" class="page-section hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-emerald-400">★ วอทช์ลิสต์หุ้นน่าจับตามอง (Watchlist & Key Catalysts)</h2>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">ราคาอัปเดตสดผ่าน Worker • คลิกที่การ์ดหุ้นเพื่อเปิดดูงบและรากเหง้าในหน้าภาพรวม</p>
+          </div>
+          <span id="watchlist-status" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-emerald-400">กำลังอัปเดตราคา...</span>
+        </div>
+
+        <div id="watchlist-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: COMPANY ROOTS & LEADERSHIP -->
+    <div id="page-roots" class="page-section hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-emerald-400">🏛️ รากเหง้าบริษัท & บุคคลสำคัญ (Company Roots)</h2>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">ทำความเข้าใจจุดเริ่มต้น วัฒนธรรมองค์กร และผู้ขับเคลื่อนธุรกิจตัวจริง</p>
+          </div>
+          <span id="root-sector-badge" class="text-xs font-semibold px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-300">Semiconductors</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">ปีที่ก่อตั้ง (Founded Year)</div>
+            <div id="root-founded" class="text-base font-bold text-slate-100 mt-1.5">-</div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">ผู้ร่วมก่อตั้ง (Co-Founders)</div>
+            <div id="root-founders" class="text-base font-bold text-slate-100 mt-1.5">-</div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">ผู้นำ / บุคคลสำคัญ (Key Leaders)</div>
+            <div id="root-leaders" class="text-base font-bold text-emerald-400 mt-1.5">-</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-2.5">
+          <h3 class="text-sm font-bold text-slate-200">📖 ประวัติความเป็นมาและวิวัฒนาการธุรกิจ</h3>
+          <p id="root-history" class="text-sm text-slate-300 leading-relaxed">-</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: DAILY NEWS & PERSONAL RESEARCH NOTEBOOK -->
+    <div id="page-news-notes" class="page-section hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- News Column -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h2 class="text-base font-bold text-emerald-400">📰 สรุปประเด็นข่าวสำคัญ</h2>
+              <p class="text-xs text-slate-400">ประเด็นที่ควรติดตามสำหรับหุ้นนี้</p>
+            </div>
+            <span class="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300">โน้ตสรุปตั้งต้น</span>
+          </div>
+          <div id="news-list" class="space-y-3"></div>
+        </div>
+
+        <!-- Research Notebook Column -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-emerald-400">${item.symbol}</span>
-                ${item.sector ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 truncate">${item.sector}</span>` : ""}
+                <h2 class="text-base font-bold text-emerald-400">📝 สมุดบันทึกการบ้านรายหุ้น</h2>
+                <span id="note-ticker-badge" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">NVDA</span>
               </div>
-              <div class="text-xs text-slate-300 truncate mt-0.5">${item.name}</div>
+              <p class="text-xs text-slate-400">บันทึกแยกตามรายบริษัท เก็บในเบราว์เซอร์ของคุณเอง (0 โควตา API)</p>
             </div>
-          </button>
-        `;
-      }).join("");
+            <div class="flex items-center gap-2">
+              <span id="note-save-status" class="text-xs text-slate-400">พร้อมบันทึก</span>
+              <button id="export-notes-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+                Export (.json)
+              </button>
+            </div>
+          </div>
 
-      dropdownEl.classList.remove("hidden");
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="text-slate-300 font-semibold block mb-1">1. จุดแข็ง / คูเมืองธุรกิจ (Moat & Edge)</label>
+              <textarea id="note-moat" rows="3" placeholder="เช่น ครองส่วนแบ่งตลาดชิปหลัก, ลูกค้าย้ายค่ายยาก..."
+                class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none"></textarea>
+            </div>
+            <div>
+              <label class="text-slate-300 font-semibold block mb-1">2. ความเสี่ยง / จุดที่ต้องระวัง (Risks)</label>
+              <textarea id="note-risk" rows="3" placeholder="เช่น ธุรกิจเป็นวัฏจักร, คู่แข่งตัดราคา, P/E สูง..."
+                class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none"></textarea>
+            </div>
+            <div>
+              <label class="text-slate-300 font-semibold block mb-1">3. สรุปแผน & สิ่งที่ต้องตามต่อ (Action & Checklist)</label>
+              <textarea id="note-plan" rows="3" placeholder="เช่น รอติดตามงบไตรมาสหน้า, เข้าทยอยสะสมเมื่อ MOS > 20%..."
+                class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      dropdownEl.querySelectorAll(".suggestion-item").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const chosen = items[Number(btn.dataset.idx)];
-          tickerInput.value = chosen.symbol;
-          document.getElementById("search-badge").textContent = chosen.symbol.slice(0, 2);
-          dropdownEl.classList.add("hidden");
-          loadStock(chosen.symbol, chosen);
-        });
-      });
-    }
+    <!-- PAGE 5: CALCULATORS & SCENARIO LAB -->
+    <div id="page-calculators" class="page-section hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 1. Valuation + Bear/Base/Bull + PEG -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <h2 class="text-base font-bold text-emerald-400">1. ประเมินมูลค่า & 3 สมมติฐาน</h2>
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">EPS คาดการณ์ ($)</label>
+              <input id="val-eps" type="number" step="0.01" value="3.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Base P/E (เท่า)</label>
+              <input id="val-pe" type="number" step="0.5" value="30" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">คาดการณ์โต %/ปี (Growth)</label>
+              <input id="val-growth" type="number" step="1" value="25" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">เผื่อ MOS (%)</label>
+              <input id="val-mos" type="number" step="1" value="20" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm" />
+            </div>
+          </div>
 
-    async function filterOrSearch(query) {
-      const q = (query || "").trim().toLowerCase();
-      const localMatches = !q
-        ? catalog
-        : catalog.filter((c) =>
-            c.symbol.toLowerCase().includes(q) ||
-            c.name.toLowerCase().includes(q) ||
-            (c.sector && c.sector.toLowerCase().includes(q))
-          );
+          <div class="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2">
+              <div class="text-rose-400 font-semibold">Bear (-25%)</div>
+              <div id="scn-bear" class="font-bold text-slate-100 mt-0.5">$0.00</div>
+            </div>
+            <div class="bg-slate-950 border border-emerald-500/40 rounded-lg p-2">
+              <div class="text-emerald-400 font-semibold">Base Fair</div>
+              <div id="val-fair" class="font-bold text-slate-100 mt-0.5">$0.00</div>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2">
+              <div class="text-sky-400 font-semibold">Bull (+25%)</div>
+              <div id="scn-bull" class="font-bold text-slate-100 mt-0.5">$0.00</div>
+            </div>
+          </div>
 
-      renderSuggestions(localMatches);
+          <div class="pt-2.5 border-t border-slate-800 text-xs space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-slate-400">ราคาเข้าซื้อที่เผื่อ MOS:</span>
+              <span id="val-buy" class="font-bold text-emerald-400">$0.00</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Upside / Downside เทียบ Base:</span>
+              <span id="val-upside" class="font-bold">0.0%</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">PEG Ratio (P/E ÷ Growth):</span>
+              <span id="val-peg" class="font-bold text-slate-100">-</span>
+            </div>
+          </div>
+        </div>
 
-      if (q.length >= 1) {
-        try {
-          const res = await fetch(`${WORKER_URL}/?action=search&q=${encodeURIComponent(q)}`);
-          const data = await res.json();
-          if (data && Array.isArray(data.result)) {
-            const apiItems = data.result
-              .filter((r) => r.symbol && !r.symbol.includes("."))
-              .slice(0, 6)
-              .map((r) => {
-                const known = catalog.find((c) => c.symbol === r.symbol);
-                return known || {
-                  symbol: r.symbol,
-                  name: r.description || r.symbol,
-                  domain: "",
-                  sector: r.type || "Equity"
-                };
-              });
+        <!-- 2. Position Sizing -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <h2 class="text-base font-bold text-emerald-400">2. คำนวณขนาดไม้ & ความเสี่ยง (Risk)</h2>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">ขนาดพอร์ต (บาท/USD)</label>
+              <input id="pos-capital" type="number" step="100" value="100000" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">ยอมรับความเสี่ยง/ไม้ (%)</label>
+              <input id="pos-risk-pct" type="number" step="0.1" value="1.5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">ราคาเข้าซื้อ (Entry)</label>
+              <input id="pos-entry" type="number" step="0.01" value="138.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">จุด Stop Loss</label>
+              <input id="pos-stop" type="number" step="0.01" value="130.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-sm" />
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-slate-400">ขาดทุนสูงสุดที่รับได้/ไม้:</span>
+              <span id="pos-max-loss" class="font-bold text-rose-400">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">จำนวนหุ้นที่ควรซื้อ:</span>
+              <span id="pos-shares" class="font-bold text-emerald-400">0 หุ้น</span>
+            </div>
+          </div>
+        </div>
 
-            const merged = [...localMatches];
-            apiItems.forEach((item) => {
-              if (!merged.some((m) => m.symbol === item.symbol)) {
-                merged.push(item);
-              }
-            });
-            renderSuggestions(merged.slice(0, 8));
-          }
-        } catch (_) {}
-      }
-    }
-
-    tickerInput.addEventListener("focus", () => filterOrSearch(tickerInput.value));
-    tickerInput.addEventListener("input", () => {
-      const val = tickerInput.value.trim().toUpperCase();
-      document.getElementById("search-badge").textContent = (val || "ST").slice(0, 2);
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => filterOrSearch(val), 180);
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!document.getElementById("search-container").contains(e.target)) {
-        dropdownEl.classList.add("hidden");
-      }
-    });
-
-    function renderChart(values) {
-      const ctx = document.getElementById("stockChart").getContext("2d");
-      if (chartInstance) chartInstance.destroy();
-      chartInstance = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: values.map((_, i) => `P${i + 1}`),
-          datasets: [{
-            label: "Price ($)",
-            data: values,
-            borderColor: "#34d399",
-            backgroundColor: "rgba(52, 211, 153, 0.12)",
-            fill: true,
-            tension: 0.35
-          }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } },
-            y: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } }
-          }
-        }
-      });
-    }
-
-    function renderStatement(rows) {
-      const tbody = document.getElementById("stmt-body");
-      tbody.innerHTML = (rows || []).map(([label, v1, v2, v3]) => `
-        <tr>
-          <td class="py-2.5 pr-4 text-slate-300">${label}</td>
-          <td class="py-2.5 px-3 text-right font-mono">${v1}</td>
-          <td class="py-2.5 px-3 text-right font-mono">${v2}</td>
-          <td class="py-2.5 pl-3 text-right font-mono text-emerald-400 font-semibold">${v3}</td>
-        </tr>
-      `).join("");
-    }
-
-    async function loadStock(ticker, metaOverride = null) {
-      const cleanTicker = (ticker || "NVDA").trim().toUpperCase();
-      currentTicker = cleanTicker;
-      tickerInput.value = cleanTicker;
-      document.getElementById("search-badge").textContent = cleanTicker.slice(0, 2);
-
-      loadNoteForTicker(cleanTicker);
-
-      const found = catalog.find((c) => c.symbol === cleanTicker);
-
-      const base = {
-        symbol: cleanTicker,
-        name: (metaOverride && metaOverride.name) || (found && found.name) || `${cleanTicker} Corporation`,
-        domain: (metaOverride && metaOverride.domain) || (found && found.domain) || "",
-        sector: (metaOverride && metaOverride.sector) || (found && found.sector) || "Equity",
-        founded: found && found.founded,
-        founders: found && found.founders,
-        leaders: found && found.leaders,
-        history: found && found.history,
-        news: found && found.news,
-        price: (found && found.price) || 100.00,
-        changePct: (found && found.changePct) || 0.00,
-        pe: (found && found.pe) || "-",
-        eps: (found && found.eps) || 2.50,
-        roe: (found && found.roe) || "-",
-        de: (found && found.de) || "-",
-        chartSeries: (found && Array.isArray(found.history)) ? found.history : [92, 95, 94, 98, 97, 99, 100],
-        statements: defaultStatements
-      };
-
-      renderCompanyRoots(base);
-      renderNews(base);
-
-      let livePrice = base.price;
-      let liveChange = base.changePct;
-      let peVal = base.pe;
-      let epsVal = base.eps;
-      let roeVal = base.roe;
-      let deVal = base.de;
-      let sourceText = "โหมด: ข้อมูลอ้างอิงสำรอง";
-
-      try {
-        const [quoteRes, metricRes] = await Promise.all([
-          fetch(`${WORKER_URL}/?action=quote&symbol=${encodeURIComponent(cleanTicker)}`),
-          fetch(`${WORKER_URL}/?action=metrics&symbol=${encodeURIComponent(cleanTicker)}`)
-        ]);
-
-        const q = await quoteRes.json();
-        const m = await metricRes.json();
-
-        if (q && typeof q.c === "number" && q.c > 0) {
-          livePrice = q.c;
-          liveChange = typeof q.dp === "number" ? q.dp : 0;
-          sourceText = `โหมด: Real-time ผ่าน Cloudflare Worker (${cleanTicker})`;
-        }
-
-        if (m && m.metric) {
-          if (typeof m.metric.peBasicExclExtraTTM === "number") peVal = m.metric.peBasicExclExtraTTM.toFixed(1);
-          if (typeof m.metric.epsTTM === "number") epsVal = m.metric.epsTTM;
-          if (typeof m.metric.roeTTM === "number") roeVal = `${m.metric.roeTTM.toFixed(1)}%`;
-          if (typeof m.metric["totalDebt/totalEquityQuarterly"] === "number") {
-            deVal = m.metric["totalDebt/totalEquityQuarterly"].toFixed(2);
-          }
-        }
-      } catch (_) {
-        sourceText = "โหมด: ข้อมูลสำรอง (ตรวจสอบ FINNHUB_API_KEY ใน Worker หากยังไม่ได้ตั้งค่า)";
-      }
-
-      currentLivePrice = Number(livePrice) || 100;
-
-      renderLogoInto(
-        document.getElementById("disp-logo"),
-        document.getElementById("disp-logo-fallback"),
-        base
-      );
-
-      document.getElementById("disp-symbol").textContent = cleanTicker;
-      document.getElementById("disp-name").textContent = base.name;
-      document.getElementById("disp-price").textContent = `$${currentLivePrice.toFixed(2)}`;
-
-      const chgEl = document.getElementById("disp-change");
-      const sign = liveChange >= 0 ? "+" : "";
-      chgEl.textContent = `${sign}${Number(liveChange).toFixed(2)}%`;
-      chgEl.className = `text-xs font-semibold ${liveChange >= 0 ? "text-emerald-400" : "text-rose-400"}`;
-
-      document.getElementById("m-pe").textContent = peVal === "-" ? "-" : `${peVal}x`;
-      document.getElementById("m-eps").textContent = typeof epsVal === "number" ? `$${epsVal.toFixed(2)}` : epsVal;
-      document.getElementById("m-roe").textContent = roeVal;
-      document.getElementById("m-de").textContent = deVal;
-
-      document.getElementById("data-source-label").textContent = sourceText;
-      document.getElementById("last-updated").textContent = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString("th-TH")}`;
-
-      if (typeof epsVal === "number" && epsVal > 0) {
-        document.getElementById("val-eps").value = epsVal.toFixed(2);
-      }
-      document.getElementById("pos-entry").value = currentLivePrice.toFixed(2);
-      document.getElementById("pos-stop").value = (currentLivePrice * 0.94).toFixed(2);
-
-      renderChart(base.chartSeries);
-      renderStatement(base.statements[currentStmtType]);
-      calcAll();
-    }
-
-    function calcAll() {
-      const eps = parseFloat(document.getElementById("val-eps").value) || 0;
-      const pe = parseFloat(document.getElementById("val-pe").value) || 0;
-      const growth = parseFloat(document.getElementById("val-growth").value) || 0;
-      const mos = (parseFloat(document.getElementById("val-mos").value) || 0) / 100;
-
-      const fair = eps * pe;
-      const bear = fair * 0.75;
-      const bull = fair * 1.25;
-      const buyPrice = fair * (1 - Math.min(Math.max(mos, 0), 0.95));
-
-      document.getElementById("scn-bear").textContent = `$${bear.toFixed(2)}`;
-      document.getElementById("val-fair").textContent = `$${fair.toFixed(2)}`;
-      document.getElementById("scn-bull").textContent = `$${bull.toFixed(2)}`;
-      document.getElementById("val-buy").textContent = `$${buyPrice.toFixed(2)}`;
-
-      const upsideEl = document.getElementById("val-upside");
-      if (currentLivePrice > 0 && fair > 0) {
-        const diffPct = ((fair - currentLivePrice) / currentLivePrice) * 100;
-        upsideEl.textContent = `${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(1)}%`;
-        upsideEl.className = `font-bold ${diffPct >= 0 ? "text-emerald-400" : "text-rose-400"}`;
-      } else {
-        upsideEl.textContent = "0.0%";
-        upsideEl.className = "font-bold text-slate-300";
-      }
-
-      const pegEl = document.getElementById("val-peg");
-      if (pe > 0 && growth > 0) {
-        const peg = pe / growth;
-        pegEl.textContent = `${peg.toFixed(2)}x`;
-        pegEl.className = `font-bold ${peg <= 1.2 ? "text-emerald-400" : peg <= 2.0 ? "text-amber-300" : "text-rose-400"}`;
-      } else {
-        pegEl.textContent = "-";
-        pegEl.className = "font-bold text-slate-300";
-      }
-
-      const cap = parseFloat(document.getElementById("pos-capital").value) || 0;
-      const riskPct = (parseFloat(document.getElementById("pos-risk-pct").value) || 0) / 100;
-      const entry = parseFloat(document.getElementById("pos-entry").value) || 0;
-      const stop = parseFloat(document.getElementById("pos-stop").value) || 0;
-      const maxLoss = cap * riskPct;
-      const diffPerShare = Math.abs(entry - stop);
-      const shares = diffPerShare > 0 ? Math.floor(maxLoss / diffPerShare) : 0;
-      document.getElementById("pos-max-loss").textContent = `${Math.round(maxLoss).toLocaleString()}`;
-      document.getElementById("pos-shares").textContent = `${shares.toLocaleString()} หุ้น`;
-
-      const m = parseFloat(document.getElementById("dca-m").value) || 0;
-      const y = parseFloat(document.getElementById("dca-y").value) || 0;
-      const r = ((parseFloat(document.getElementById("dca-r").value) || 0) / 100) / 12;
-      const n = y * 12;
-      const prin = m * n;
-      const fv = r > 0 ? m * (((Math.pow(1 + r, n) - 1) / r) * (1 + r)) : prin;
-      document.getElementById("dca-prin").textContent = `${Math.round(prin).toLocaleString()}`;
-      document.getElementById("dca-fv").textContent = `${Math.round(fv).toLocaleString()}`;
-    }
-
-    document.getElementById("load-btn").addEventListener("click", () => {
-      dropdownEl.classList.add("hidden");
-      loadStock(tickerInput.value);
-    });
-
-    tickerInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        dropdownEl.classList.add("hidden");
-        loadStock(tickerInput.value);
-      }
-    });
-
-    document.querySelectorAll(".stmt-tab").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".stmt-tab").forEach((b) => {
-          b.className = "stmt-tab px-3 py-1 rounded-md text-slate-300 hover:bg-slate-800";
-        });
-        btn.className = "stmt-tab px-3 py-1 rounded-md bg-emerald-500 text-slate-950 font-semibold";
-        currentStmtType = btn.dataset.stmt;
-        renderStatement(defaultStatements[currentStmtType]);
-      });
-    });
-
-    ["val-eps", "val-pe", "val-growth", "val-mos", "pos-capital", "pos-risk-pct", "pos-entry", "pos-stop", "dca-m", "dca-y", "dca-r"]
-      .forEach((id) => document.getElementById(id).addEventListener("input", calcAll));
-
-    refreshWatchlistLivePrices();
-    loadStock("NVDA");
-  </script>
-</body>
-</html>
+        <!-- 3. Compound DCA -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <h2 class="text-base font-bold text-emerald-400">3. คำนวณ DCA ทบต้น</h2>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">ต่อเดือน</label>
+              <input id="dca-m" type="number" step="500" value="3000" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">กี่ปี</label>
+              <input id="dca-y" type="number" min="1" max="40" value="5" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">ผลตอบแทน %/ปี</label>
+              <input id="dca-r" type="number" step="0.5" value="15" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-sm" />
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-800 text-sm space-y-1.5">
+            <div class="flex justify
