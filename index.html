@@ -7,23 +7,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* ซ่อน Scrollbar ของแถบเมนูบนมือถือให้เลื่อนเนียนๆ */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-  <!-- Top Navigation Header (Investing.com Style) -->
+  <!-- Top Navigation Header -->
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <!-- Row 1: Logo + Search Bar + Status -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
         <div class="flex items-center justify-between">
-          <div class="flex items-baseline gap-2.5 cursor-pointer" onclick="switchPage('overview')">
+          <a href="#overview" class="flex items-baseline gap-2.5">
             <span class="text-xl md:text-2xl font-black tracking-tight text-emerald-400">NEXORA<span class="text-slate-100">TRADING</span></span>
             <span class="text-[11px] text-slate-400 font-normal bg-slate-800 px-2 py-0.5 rounded-full">กุว่างเลยทำเล่นๆ</span>
-          </div>
+          </a>
           <span id="mobile-live-dot" class="md:hidden text-[11px] text-emerald-400 flex items-center gap-1">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Worker Ready
           </span>
@@ -59,28 +58,28 @@
         </div>
       </div>
 
-      <!-- Row 2: Category Navigation Tabs -->
+      <!-- Row 2: Category Navigation Tabs (Hash URLs) -->
       <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar border-t border-slate-800/80 pt-1 text-xs md:text-sm font-medium">
-        <button data-page="overview" class="nav-tab px-4 py-2.5 border-b-2 border-emerald-400 text-emerald-400 font-bold whitespace-nowrap transition">
+        <a href="#overview" data-page="overview" class="nav-tab px-4 py-2.5 border-b-2 border-emerald-400 text-emerald-400 font-bold whitespace-nowrap transition">
           📊 ภาพรวม & งบการเงิน
-        </button>
-        <button data-page="watchlist" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+        </a>
+        <a href="#watchlist" data-page="watchlist" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
           ★ วอทช์ลิสต์ (Watchlist)
-        </button>
-        <button data-page="roots" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+        </a>
+        <a href="#roots" data-page="roots" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
           🏛️ รากเหง้าบริษัท & CEO
-        </button>
-        <button data-page="news-notes" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+        </a>
+        <a href="#news-notes" data-page="news-notes" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
           📰 ข่าวสาร & สมุดโน้ต
-        </button>
-        <button data-page="calculators" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
+        </a>
+        <a href="#calculators" data-page="calculators" class="nav-tab px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-100 whitespace-nowrap transition">
           🧮 เครื่องมือคำนวณ
-        </button>
+        </a>
       </nav>
     </div>
   </header>
 
-  <!-- Active Stock Sub-Header Banner (Always visible across pages) -->
+  <!-- Active Stock Sub-Header Banner -->
   <div class="bg-slate-900/60 border-b border-slate-800/80">
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
@@ -104,12 +103,11 @@
     </div>
   </div>
 
-  <!-- Main Content Area (Switched by Tabs) -->
+  <!-- Main Content Area -->
   <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1">
 
     <!-- PAGE 1: OVERVIEW & FINANCIALS -->
     <div id="page-overview" class="page-section space-y-6">
-      <!-- Key Metrics Cards -->
       <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div class="text-xs text-slate-400">P/E Ratio (TTM)</div>
@@ -133,7 +131,6 @@
         </div>
       </section>
 
-      <!-- Chart + Financial Statements -->
       <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
           <div>
@@ -175,20 +172,19 @@
         </div>
       </section>
 
-      <!-- Quick Jump Cards -->
       <section class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <button onclick="switchPage('roots')" class="text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
+        <a href="#roots" class="block text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
           <div class="text-sm font-bold text-emerald-400">🏛️ อ่านรากเหง้าบริษัทนี้ →</div>
           <p class="text-xs text-slate-400 mt-1">ดูปีที่ก่อตั้ง ผู้ร่วมก่อตั้ง CEO และประวัติความเป็นมา</p>
-        </button>
-        <button onclick="switchPage('news-notes')" class="text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
+        </a>
+        <a href="#news-notes" class="block text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
           <div class="text-sm font-bold text-emerald-400">📝 จดโน้ตการบ้านหุ้นนี้ →</div>
           <p class="text-xs text-slate-400 mt-1">อ่านสรุปประเด็นข่าวและบันทึก Moat / Risks ส่วนตัว</p>
-        </button>
-        <button onclick="switchPage('calculators')" class="text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
+        </a>
+        <a href="#calculators" class="block text-left bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 transition">
           <div class="text-sm font-bold text-emerald-400">🧮 คำนวณมูลค่าเหมาะสม →</div>
           <p class="text-xs text-slate-400 mt-1">ประเมินราคา Fair Value (Bear/Base/Bull) และขนาดไม้</p>
-        </button>
+        </a>
       </section>
     </div>
 
@@ -243,7 +239,6 @@
     <!-- PAGE 4: DAILY NEWS & PERSONAL RESEARCH NOTEBOOK -->
     <div id="page-news-notes" class="page-section hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- News Column -->
         <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
           <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
             <div>
@@ -255,7 +250,6 @@
           <div id="news-list" class="space-y-3"></div>
         </div>
 
-        <!-- Research Notebook Column -->
         <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
             <div>
@@ -297,7 +291,6 @@
     <!-- PAGE 5: CALCULATORS & SCENARIO LAB -->
     <div id="page-calculators" class="page-section hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- 1. Valuation + Bear/Base/Bull + PEG -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
           <h2 class="text-base font-bold text-emerald-400">1. ประเมินมูลค่า & 3 สมมติฐาน</h2>
           <div class="grid grid-cols-2 gap-2.5 text-xs">
@@ -350,7 +343,6 @@
           </div>
         </div>
 
-        <!-- 2. Position Sizing -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
           <h2 class="text-base font-bold text-emerald-400">2. คำนวณขนาดไม้ & ความเสี่ยง (Risk)</h2>
           <div class="grid grid-cols-2 gap-3 text-xs">
@@ -383,7 +375,6 @@
           </div>
         </div>
 
-        <!-- 3. Compound DCA -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
           <h2 class="text-base font-bold text-emerald-400">3. คำนวณ DCA ทบต้น</h2>
           <div class="grid grid-cols-3 gap-2 text-xs">
@@ -424,9 +415,15 @@
   <script>
     const WORKER_URL = "https://stock-proxy.d2pkn724gr.workers.dev";
     const NOTES_STORAGE_KEY = "nexora_research_notes_v1";
+    const VALID_PAGES = ["overview", "watchlist", "roots", "news-notes", "calculators"];
 
-    // --- Page Router (Zero API Quota) ---
-    function switchPage(pageName) {
+    // --- Hash URL Router (Zero API Quota) ---
+    function getPageFromHash() {
+      const raw = (window.location.hash || "").replace(/^#/, "").trim().toLowerCase();
+      return VALID_PAGES.includes(raw) ? raw : "overview";
+    }
+
+    function applyPageView(pageName) {
       document.querySelectorAll(".page-section").forEach((sec) => {
         sec.classList.add("hidden");
       });
@@ -442,8 +439,17 @@
       });
     }
 
-    document.querySelectorAll(".nav-tab").forEach((tab) => {
-      tab.addEventListener("click", () => switchPage(tab.dataset.page));
+    function switchPage(pageName) {
+      const safePage = VALID_PAGES.includes(pageName) ? pageName : "overview";
+      if (window.location.hash !== `#${safePage}`) {
+        window.location.hash = `#${safePage}`;
+      } else {
+        applyPageView(safePage);
+      }
+    }
+
+    window.addEventListener("hashchange", () => {
+      applyPageView(getPageFromHash());
     });
 
     const catalog = [
@@ -634,7 +640,6 @@
     const tickerInput = document.getElementById("ticker-input");
     const dropdownEl = document.getElementById("suggestions-dropdown");
 
-    // --- Research Notes (localStorage) ---
     function loadAllNotes() {
       try {
         return JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || "{}");
@@ -1123,6 +1128,7 @@
     ["val-eps", "val-pe", "val-growth", "val-mos", "pos-capital", "pos-risk-pct", "pos-entry", "pos-stop", "dca-m", "dca-y", "dca-r"]
       .forEach((id) => document.getElementById(id).addEventListener("input", calcAll));
 
+    applyPageView(getPageFromHash());
     refreshWatchlistLivePrices();
     loadStock("NVDA");
   </script>
